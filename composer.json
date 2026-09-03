@@ -1,0 +1,19 @@
+{
+    "name": "saveur221/web",
+    "description": "Plateforme de gestion du restaurant Saveur221 — module PHP Web",
+    "type": "project",
+    "require": {
+        "php": "^8.1",
+        "ext-pdo": "*",
+        "ext-pdo_pgsql": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Core\\": "core/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
