@@ -16,6 +16,7 @@ use App\Models\LigneCommande;
 use App\Repositories\CommandeRepository;
 use App\Repositories\LigneCommandeRepository;
 use App\Repositories\ProduitRepository;
+use App\Models\Statistiques;
 use Core\Database;
 use DateTimeImmutable;
 
@@ -179,7 +180,7 @@ final class CommandeService
     {
         $connexion = Database::getConnexion();
         $connexion->beginTransaction();
-    
+
         try {
             $commande = new Commande(
                 0,
@@ -191,41 +192,41 @@ final class CommandeService
                 0.0
             );
             $commande = $this->commandeRepository->creer($commande);
-    
+
             $montantTotal = 0.0;
-    
+
             foreach ($lignes as $produitId => $quantite) {
                 $produit = $this->produitRepository->trouverParId($produitId);
-    
+
                 if ($produit === null) {
                     throw new ProduitInexistantException("Produit introuvable avec l'id {$produitId}.");
                 }
-    
+
                 if ($quantite > $produit->getQuantiteStock()) {
                     throw new StockInsuffisantException(
                         "Stock insuffisant pour {$produit->getLibelle()} (disponible : {$produit->getQuantiteStock()})."
                     );
                 }
-    
+
                 $ligneCommande = new LigneCommande(0, $commande->getId(), $produitId, $quantite, $produit->getPrix());
                 $this->ligneCommandeRepository->creer($ligneCommande);
-    
+
                 $this->produitService->diminuerStock($produitId, $quantite);
-    
+
                 $montantTotal += $ligneCommande->calculerSousTotal();
             }
-    
+
             $commande->setMontantTotal($montantTotal);
             $this->commandeRepository->mettreAJour($commande);
-    
+
             $this->factureService->genererFacture($commande);
-    
+
             $connexion->commit();
-    
+
             return $commande;
         } catch (\Throwable $exception) {
             $connexion->rollBack();
-    
+
             throw $exception;
         }
     }
@@ -297,6 +298,131 @@ final class CommandeService
                 "Transition impossible de {$statutActuel->value} vers {$nouveauStatut->value}."
             );
         }
+    }
+
+    /**
+     * Calcule les indicateurs du tableau de bord statistique : chiffre
+     * d'affaires jour/semaine/mois, nombre de commandes, commandes en cours,
+     * produit le plus vendu et top 3 des produits. Recharge l'intégralité des
+     * commandes et de leurs lignes à chaque appel — suffisant pour le volume
+     * de données de ce projet, à revoir avec des requêtes d'agrégation SQL si
+     * le volume venait à grossir significativement.
+     *
+     * @return Statistiques Indicateurs calculés
+     */
+    public function calculerStatistiques(): Statistiques
+    {
+        $toutesLesCommandes = $this->commandeRepository->trouverTous();
+        $maintenant = new DateTimeImmutable();
+
+        $nombreCommandes = count($toutesLesCommandes);
+
+        $commandesEnCours = count(array_filter(
+            $toutesLesCommandes,
+            fn(Commande $commande) => in_array(
+                $commande->getStatut(),
+                [StatutCommande::EN_ATTENTE, StatutCommande::EN_PREPARATION, StatutCommande::PRETE],
+                strict: true
+            )
+        ));
+
+        $chiffreAffairesJour = $this->sommerMontants(
+            $toutesLesCommandes,
+            fn(Commande $commande) => $commande->getDateCommande()->format('Y-m-d') === $maintenant->format('Y-m-d')
+        );
+
+        $chiffreAffairesSemaine = $this->sommerMontants(
+            $toutesLesCommandes,
+            fn(Commande $commande) => $commande->getDateCommande() >= $maintenant->modify('-7 days')
+        );
+
+        $chiffreAffairesMois = $this->sommerMontants(
+            $toutesLesCommandes,
+            fn(Commande $commande) => $commande->getDateCommande()->format('Y-m') === $maintenant->format('Y-m')
+        );
+
+        [$produitLePlusVendu, $top3Produits] = $this->calculerClassementProduits($toutesLesCommandes);
+
+        return new Statistiques(
+            chiffreAffairesJour: $chiffreAffairesJour,
+            chiffreAffairesSemaine: $chiffreAffairesSemaine,
+            chiffreAffairesMois: $chiffreAffairesMois,
+            nombreCommandes: $nombreCommandes,
+            commandesEnCours: $commandesEnCours,
+            produitLePlusVendu: $produitLePlusVendu,
+            top3Produits: $top3Produits,
+        );
+    }
+
+    /**
+     * Additionne le montant total des commandes respectant un critère donné.
+     *
+     * @param Commande[] $commandes Commandes à parcourir
+     * @param callable   $filtre    Prédicat appliqué à chaque commande
+     * @return float Somme des montants des commandes retenues
+     */
+    private function sommerMontants(array $commandes, callable $filtre): float
+    {
+        return array_reduce(
+            array_filter($commandes, $filtre),
+            fn(float $total, Commande $commande) => $total + $commande->getMontantTotal(),
+            0.0
+        );
+    }
+
+    /**
+     * Regroupe les lignes de toutes les commandes par produit, pour en
+     * déduire le produit le plus vendu et le top 3. Calcul volontairement
+     * simple (une seule passe en mémoire), suffisant pour le volume de
+     * données attendu dans ce projet.
+     *
+     * @param Commande[] $commandes Commandes à parcourir
+     * @return array{0: string, 1: string[]} Libellé du produit le plus vendu, et top 3 formaté
+     */
+    private function calculerClassementProduits(array $commandes): array
+    {
+        $quantitesParProduit = [];
+
+        foreach ($commandes as $commande) {
+            $lignes = $this->ligneCommandeRepository->trouverParCommande($commande->getId());
+
+            foreach ($lignes as $ligne) {
+                $produitId = $ligne->getProduitId();
+                $quantitesParProduit[$produitId] = ($quantitesParProduit[$produitId] ?? 0) + $ligne->getQuantite();
+            }
+        }
+
+        if (empty($quantitesParProduit)) {
+            return ['Aucune vente enregistrée', []];
+        }
+
+        arsort($quantitesParProduit);
+
+        $produitLePlusVendu = $this->formaterProduit(array_key_first($quantitesParProduit), $quantitesParProduit);
+
+        $top3 = array_slice($quantitesParProduit, 0, 3, preserve_keys: true);
+        $top3Produits = array_map(
+            fn(int $produitId) => $this->formaterProduit($produitId, $quantitesParProduit),
+            array_keys($top3)
+        );
+
+        return [$produitLePlusVendu, $top3Produits];
+    }
+
+    /**
+     * Formate le libellé d'un produit accompagné de sa quantité vendue, en
+     * gérant le cas où le produit aurait été supprimé du catalogue depuis.
+     *
+     * @param int   $produitId          Identifiant du produit à formater
+     * @param array $quantitesParProduit Quantités vendues, indexées par identifiant de produit
+     * @return string Libellé formaté, ex: "Poulet Yassa (12 vendus)"
+     */
+    private function formaterProduit(int $produitId, array $quantitesParProduit): string
+    {
+        $produit = $this->produitRepository->trouverParId($produitId);
+        $libelle = $produit?->getLibelle() ?? "Produit inconnu (id {$produitId})";
+
+        return "{$libelle} ({$quantitesParProduit[$produitId]} vendus)";
     }
 
     /**
