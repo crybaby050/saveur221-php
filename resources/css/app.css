@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+    --color-bordeaux: #8B1424;
+    --color-bordeaux-sombre: #5C0A16;
+    --color-rubis: #B51F35;
+    --color-charbon: #111111;
+    --color-or: #C9A45C;
+    --color-or-clair: #E5C98B;
+    --color-ivoire: #FAF7F2;
+    --color-creme: #F1E9DC;
+    --color-gris-chaud: #8A8178;
+
+    --font-voice: "Playfair Display", serif;
+    --font-sans: "Inter", sans-serif;
+}
+
+@keyframes zoomLent {
+    from {
+        transform: scale(1);
+    }
+
+    to {
+        transform: scale(1.08);
+    }
+}
