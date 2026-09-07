@@ -154,7 +154,7 @@ $estActif = static fn(string $cle): bool => $section === $cle;
             <nav class="mt-4 flex-1 space-y-1 overflow-y-auto px-3">
                 <?php foreach ($liensMenu as $lien): ?>
                     <?php if (!$lien['visible']) continue; ?>
-                    
+                                
                         href="<?= View::e($lien['href']) ?>"
                         class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors <?= $estActif($lien['section'])
                             ? 'bg-bordeaux text-ivoire'
