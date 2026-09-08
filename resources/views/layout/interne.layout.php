@@ -73,10 +73,10 @@ $estActif = static fn(string $cle): bool => $section === $cle;
         <div id="overlay-sidebar" class="fixed inset-0 z-30 hidden bg-charbon/50 md:hidden"></div>
 
         <!-- Sidebar : fond charbon, motifs Art déco fins en coins pour rejoindre
-             l'identité déjà posée sur la page de connexion, plutôt qu'un noir plat. -->
+            l'identité déjà posée sur la page de connexion, plutôt qu'un noir plat. -->
         <aside
             id="sidebar"
-            class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col overflow-hidden bg-charbon transition-transform duration-200 md:static md:translate-x-0"
+            class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col overflow-hidden bg-charbon transition-transform duration-200 md:translate-x-0"
         >
             <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-40" viewBox="0 0 256 700" preserveAspectRatio="none" aria-hidden="true">
                 <g stroke="#C9A45C" stroke-width="1" fill="none">
@@ -124,7 +124,7 @@ $estActif = static fn(string $cle): bool => $section === $cle;
             </div>
         </aside>
 
-        <div class="flex flex-1 flex-col">
+        <div class="flex flex-1 flex-col md:ml-64">
 
             <header class="flex h-16 items-center justify-between border-b border-or-clair bg-white px-5 md:px-8">
                 <div class="flex items-center gap-3">

@@ -410,6 +410,25 @@ final class CommandeService
     }
 
     /**
+     * Retourne les commandes non encore retirées ni annulées — utilisée pour
+     * lister les commandes à traiter sur le tableau de bord, contrairement
+     * au compte simple calculé dans calculerStatistiques().
+     *
+     * @return Commande[] Commandes en cours
+     */
+    public function commandesEnCours(): array
+    {
+        return array_values(array_filter(
+            $this->commandeRepository->trouverTous(),
+            fn(Commande $commande) => in_array(
+                $commande->getStatut(),
+                [StatutCommande::EN_ATTENTE, StatutCommande::EN_PREPARATION, StatutCommande::PRETE],
+                strict: true
+            )
+        ));
+    }
+
+    /**
      * Formate le libellé d'un produit accompagné de sa quantité vendue, en
      * gérant le cas où le produit aurait été supprimé du catalogue depuis.
      *
