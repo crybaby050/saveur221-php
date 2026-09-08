@@ -15,7 +15,7 @@ function icone_stat(string $nom): string
         'calendrier' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke-linecap="round"/>',
         'graphique' => '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke-linecap="round" stroke-linejoin="round"/>',
         'commandes' => '<path d="M6 3h12l1 5H5l1-5Z"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M9 12h6" stroke-linecap="round"/>',
-        'classement' => '<path d="M4 21V10M12 21V4M20 21v-7" stroke-linecap="round"/>',
+        'trophee' => '<path d="M8 4h8v5a4 4 0 0 1-8 0V4Z"/><path d="M8 5H5a3 3 0 0 0 3 3M16 5h3a3 3 0 0 1-3 3"/><path d="M12 13v3M9 20h6M10 16.5h4v3.5h-4z"/>',
         'oeil' => '<path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z"/><circle cx="12" cy="12" r="3"/>',
     ];
 
@@ -45,11 +45,6 @@ $carteStat = static function (string $icone, string $label, string $valeur, stri
     <?php
 };
 
-/*
- * Libellé et couleur d'un statut de commande, sans dépendre de l'enum
- * StatutCommande directement dans la vue — comparaison sur ->value pour
- * ne pas avoir à l'importer ici.
- */
 $badgeStatut = static function (string $valeurStatut): array {
     return match ($valeurStatut) {
         'EN_ATTENTE' => ['label' => 'En attente', 'classes' => 'bg-alerte/10 text-alerte'],
@@ -57,6 +52,19 @@ $badgeStatut = static function (string $valeurStatut): array {
         'PRETE' => ['label' => 'Prête', 'classes' => 'bg-succes/10 text-succes'],
         default => ['label' => $valeurStatut, 'classes' => 'bg-creme text-gris-chaud'],
     };
+};
+
+/*
+ * Sépare "Nom du produit (N vendus)" en libellé + quantité, pour un
+ * affichage en deux lignes sur les cartes du top 3. Repli sur l'affichage
+ * brut si le format ne correspond pas (ex: "Aucune vente enregistrée").
+ */
+$parserTopProduit = static function (string $libelle): array {
+    if (preg_match('/^(.+) \((\d+) vendus\)$/', $libelle, $correspondances) === 1) {
+        return ['nom' => $correspondances[1], 'quantite' => $correspondances[2] . ' vendus'];
+    }
+
+    return ['nom' => $libelle, 'quantite' => null];
 };
 ?>
 
@@ -70,98 +78,83 @@ $badgeStatut = static function (string $valeurStatut): array {
         <?= $carteStat('commandes', 'Commandes enregistrées', (string) $statistiques->nombreCommandes, 'alerte') ?>
     </div>
 
-    <!-- Graphique d'évolution + Top 3 produits -->
+    <!-- Graphique + Commandes en cours, même hauteur -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
-        <div class="rounded-xl border border-creme bg-white p-5 shadow-sm lg:col-span-2">
+        <div class="flex h-[420px] flex-col rounded-xl border border-creme bg-white p-5 shadow-sm lg:col-span-2">
             <p class="mb-4 text-sm font-medium text-charbon">Évolution des commandes</p>
-            <canvas id="graphique-commandes" height="220"></canvas>
+            <div class="flex-1">
+                <canvas id="graphique-commandes"></canvas>
+            </div>
             <p class="mt-3 text-xs text-gris-chaud">Données d'exemple — à connecter aux commandes réelles.</p>
         </div>
 
-        <div class="rounded-xl border border-creme bg-white p-5 shadow-sm lg:col-span-1">
-            <div class="mb-3 flex items-center gap-2">
-                <svg class="h-4 w-4 text-or" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-                    <?= icone_stat('classement') ?>
-                </svg>
-                <p class="text-xs uppercase tracking-wide text-gris-chaud">Top 3 produits les plus vendus</p>
+        <div class="flex h-[420px] flex-col rounded-xl border border-creme bg-white shadow-sm lg:col-span-1">
+            <div class="border-b border-creme px-5 py-4">
+                <p class="text-sm font-medium text-charbon">Commandes en cours</p>
             </div>
 
-            <?php if (empty($statistiques->top3Produits)): ?>
-                <p class="text-sm text-gris-chaud">Aucune vente enregistrée pour le moment.</p>
+            <?php if (empty($commandesEnCours)): ?>
+                <p class="px-5 py-6 text-sm text-gris-chaud">Aucune commande en cours actuellement.</p>
             <?php else: ?>
-                <ol class="list-none space-y-2.5">
-                    <?php foreach ($statistiques->top3Produits as $index => $libelle): ?>
-                        <li class="flex items-center gap-3 text-sm text-charbon">
-                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bordeaux text-xs font-medium text-ivoire">
-                                <?= $index + 1 ?>
-                            </span>
-                            <?= View::e($libelle) ?>
-                        </li>
+                <div class="flex-1 overflow-y-auto">
+                    <?php foreach ($commandesEnCours as $commande): ?>
+                        <?php $badge = $badgeStatut($commande->getStatut()->value); ?>
+                        <div class="flex items-center justify-between gap-3 border-b border-creme px-5 py-3 last:border-b-0">
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-medium text-charbon"><?= View::e($commande->getNumeroCommande()) ?></p>
+                                <p class="mt-0.5 text-xs text-gris-chaud"><?= View::e($formaterMontant($commande->getMontantTotal())) ?></p>
+                                <span class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium <?= $badge['classes'] ?>">
+                                    <?= View::e($badge['label']) ?>
+                                </span>
+                            </div>
+                            
+                                href="/gerant/commandes/<?= $commande->getId() ?>"
+                                aria-label="Traiter la commande <?= View::e($commande->getNumeroCommande()) ?>"
+                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-creme text-charbon transition-colors hover:bg-ivoire"
+                            >
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                                    <?= icone_stat('oeil') ?>
+                                </svg>
+                            </a>
+                        </div>
                     <?php endforeach; ?>
-                </ol>
+                </div>
             <?php endif; ?>
         </div>
 
     </div>
 
-    <!-- Commandes en cours -->
-    <div class="rounded-xl border border-creme bg-white shadow-sm">
-        <div class="border-b border-creme px-5 py-4">
-            <p class="text-sm font-medium text-charbon">Commandes en cours</p>
-        </div>
-
-        <?php if (empty($commandesEnCours)): ?>
-            <p class="px-5 py-6 text-sm text-gris-chaud">Aucune commande en cours actuellement.</p>
-        <?php else: ?>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead>
-                        <tr class="border-b border-creme text-xs uppercase tracking-wide text-gris-chaud">
-                            <th class="px-5 py-3 font-medium">Numéro</th>
-                            <th class="px-5 py-3 font-medium">Date</th>
-                            <th class="px-5 py-3 font-medium">Montant</th>
-                            <th class="px-5 py-3 font-medium">Statut</th>
-                            <th class="px-5 py-3 font-medium text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-creme">
-                        <?php foreach ($commandesEnCours as $commande): ?>
-                            <?php $badge = $badgeStatut($commande->getStatut()->value); ?>
-                            <tr class="hover:bg-ivoire">
-                                <td class="px-5 py-3 font-medium text-charbon"><?= View::e($commande->getNumeroCommande()) ?></td>
-                                <td class="px-5 py-3 text-gris-chaud"><?= View::e($formaterDate($commande->getDateCommande())) ?></td>
-                                <td class="px-5 py-3 text-charbon"><?= View::e($formaterMontant($commande->getMontantTotal())) ?></td>
-                                <td class="px-5 py-3">
-                                    <span class="rounded-full px-2.5 py-1 text-xs font-medium <?= $badge['classes'] ?>">
-                                        <?= View::e($badge['label']) ?>
-                                    </span>
-                                </td>
-                                <td class="px-5 py-3 text-right">
-                                    
-                                        href="/gerant/commandes/<?= $commande->getId() ?>"
-                                        class="inline-flex items-center gap-1.5 rounded-md border border-creme px-2.5 py-1.5 text-xs font-medium text-charbon transition-colors hover:bg-ivoire"
-                                    >
-                                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-                                            <?= icone_stat('oeil') ?>
-                                        </svg>
-                                        Traiter
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+    <!-- Top 3 produits, une carte par produit -->
+    <?php if (!empty($statistiques->top3Produits)): ?>
+        <div>
+            <p class="mb-3 text-sm font-medium text-charbon">Top 3 produits les plus vendus</p>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <?php foreach ($statistiques->top3Produits as $index => $libelle): ?>
+                    <?php $produit = $parserTopProduit($libelle); ?>
+                    <div class="relative rounded-xl border border-creme bg-white p-5 shadow-sm">
+                        <span class="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-bordeaux text-xs font-medium text-ivoire">
+                            <?= $index + 1 ?>
+                        </span>
+                        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-or/10 text-or">
+                            <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                                <?= icone_stat('trophee') ?>
+                            </svg>
+                        </div>
+                        <p class="pr-8 text-sm font-medium text-charbon"><?= View::e($produit['nom']) ?></p>
+                        <?php if ($produit['quantite'] !== null): ?>
+                            <p class="mt-0.5 text-xs text-gris-chaud"><?= View::e($produit['quantite']) ?></p>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
             </div>
-        <?php endif; ?>
-    </div>
+        </div>
+    <?php endif; ?>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
-    // Données statiques temporaires, en attendant de les connecter aux
-    // vraies commandes (regroupées par jour) une fois ce chantier prévu.
     new Chart(document.getElementById('graphique-commandes'), {
         type: 'line',
         data: {
@@ -179,6 +172,7 @@ $badgeStatut = static function (string $valeurStatut): array {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
                 y: { beginAtZero: true, grid: { color: '#EFEFF7' } },
