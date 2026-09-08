@@ -26,9 +26,10 @@ final class StatistiqueController extends ControllerInterneBase
     public function index(): void
     {
         $this->exigerUtilisateurConnecte();
-
+    
         $this->afficherVueInterne('gerant/statistiques/index', [
             'statistiques' => $this->commandeService->calculerStatistiques(),
+            'commandesEnCours' => $this->commandeService->commandesEnCours(),
         ]);
     }
 }
