@@ -66,7 +66,7 @@ $estActif = static fn(string $cle): bool => $section === $cle;
     <title><?= View::e($titrePage) ?> · Espace interne · Saveur221</title>
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
-<body class="font-sans bg-ivoire">
+<body class="font-sans bg-white">
 
     <div class="flex min-h-screen">
 
