@@ -28,9 +28,9 @@ final class AuthInterneController
      * Affiche le formulaire de connexion réservé au personnel interne.
      */
     public function afficherConnexion(): void
-    {
-        View::render('auth/connexion-interne');
-    }
+{
+    View::render('auth/connexion-interne', layout: null);
+}
 
     /**
      * Traite la soumission du formulaire de connexion interne. Redirige

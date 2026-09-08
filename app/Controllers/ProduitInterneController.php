@@ -8,11 +8,7 @@ use App\Services\AuthService;
 use App\Services\CategorieService;
 use App\Services\ProduitService;
 use Core\Response;
-use Core\View;
 
-/*
- * Gère les produits et le stock depuis l'espace interne (Gérant/Admin).
- */
 final class ProduitInterneController extends ControllerInterneBase
 {
     public function __construct(
@@ -23,10 +19,6 @@ final class ProduitInterneController extends ControllerInterneBase
         parent::__construct($authService);
     }
 
-    /**
-     * Affiche la liste des produits, avec recherche et filtrage par
-     * catégorie optionnels.
-     */
     public function index(): void
     {
         $this->exigerUtilisateurConnecte();
@@ -40,40 +32,32 @@ final class ProduitInterneController extends ControllerInterneBase
             default => $this->produitService->listerProduits(),
         };
 
-        View::render('gerant/produits/index', [
+        $this->afficherVueInterne('gerant/produits/index', [
             'produits' => $produits,
             'categories' => $this->categorieService->listerCategories(),
         ]);
     }
 
-    /**
-     * Affiche l'état global du stock : tous les produits, ceux en stock
-     * faible, et ceux en rupture.
-     */
     public function stock(): void
     {
         $this->exigerUtilisateurConnecte();
 
-        View::render('gerant/produits/stock', [
+        $this->afficherVueInterne('gerant/produits/stock', [
             'produits' => $this->produitService->listerProduits(),
             'stockFaible' => $this->produitService->consulterStockFaible(),
             'ruptures' => $this->produitService->consulterRuptures(),
         ]);
     }
 
-    /**
-     * Affiche le formulaire d'ajout d'un produit.
-     */
     public function afficherAjout(): void
     {
         $this->exigerUtilisateurConnecte();
 
-        View::render('gerant/produits/ajouter', ['categories' => $this->categorieService->listerCategories()]);
+        $this->afficherVueInterne('gerant/produits/ajouter', [
+            'categories' => $this->categorieService->listerCategories(),
+        ]);
     }
 
-    /**
-     * Traite la soumission du formulaire d'ajout.
-     */
     public function ajouter(): void
     {
         $this->exigerUtilisateurConnecte();
@@ -91,27 +75,16 @@ final class ProduitInterneController extends ControllerInterneBase
         Response::redirect('/gerant/produits');
     }
 
-    /**
-     * Affiche le formulaire de modification d'un produit existant.
-     *
-     * @param string $id Identifiant du produit, extrait de l'URL par le Router
-     */
     public function afficherModification(string $id): void
     {
         $this->exigerUtilisateurConnecte();
 
-        View::render('gerant/produits/modifier', [
+        $this->afficherVueInterne('gerant/produits/modifier', [
             'produit' => $this->produitService->consulterProduit((int) $id),
             'categories' => $this->categorieService->listerCategories(),
         ]);
     }
 
-    /**
-     * Traite la soumission du formulaire de modification. N'affecte
-     * jamais le stock : voir approvisionner() pour cette opération.
-     *
-     * @param string $id Identifiant du produit, extrait de l'URL par le Router
-     */
     public function modifier(string $id): void
     {
         $this->exigerUtilisateurConnecte();
@@ -128,11 +101,6 @@ final class ProduitInterneController extends ControllerInterneBase
         Response::redirect('/gerant/produits');
     }
 
-    /**
-     * Supprime un produit.
-     *
-     * @param string $id Identifiant du produit, extrait de l'URL par le Router
-     */
     public function supprimer(string $id): void
     {
         $this->exigerUtilisateurConnecte();
@@ -142,11 +110,6 @@ final class ProduitInterneController extends ControllerInterneBase
         Response::redirect('/gerant/produits');
     }
 
-    /**
-     * Traite la soumission du formulaire d'approvisionnement d'un produit.
-     *
-     * @param string $id Identifiant du produit, extrait de l'URL par le Router
-     */
     public function approvisionner(string $id): void
     {
         $this->exigerUtilisateurConnecte();
@@ -156,11 +119,6 @@ final class ProduitInterneController extends ControllerInterneBase
         Response::redirect('/gerant/produits/stock');
     }
 
-    /**
-     * Traite la soumission du formulaire de définition du seuil d'alerte.
-     *
-     * @param string $id Identifiant du produit, extrait de l'URL par le Router
-     */
     public function definirSeuilAlerte(string $id): void
     {
         $this->exigerUtilisateurConnecte();

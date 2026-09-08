@@ -9,6 +9,7 @@ use App\Exceptions\AccesRefuseException;
 use App\Models\Utilisateur;
 use App\Services\AuthService;
 use Core\Response;
+use Core\View;
 
 /*
  * Base commune à tous les contrôleurs de l'espace interne (Gérant,
@@ -62,5 +63,21 @@ abstract class ControllerInterneBase
         }
 
         return $utilisateur;
+    }
+
+    /**
+     * Affiche une vue de l'espace interne, enveloppée automatiquement dans
+     * le layout interne (sidebar + topbar) — évite que chaque contrôleur
+     * doive répéter layout: 'layout/interne.layout' à chaque appel. À
+     * utiliser à la place de View::render() directement pour toute action
+     * de ce contrôleur ou de ses sous-classes.
+     *
+     * @param string $vue     Chemin de la vue, relatif à resources/views/
+     *                          (ex: 'gerant/statistiques/index')
+     * @param array  $donnees Variables à transmettre à la vue et au layout
+     */
+    protected function afficherVueInterne(string $vue, array $donnees = []): void
+    {
+        View::render($vue, $donnees, layout: 'layout/interne.layout');
     }
 }
