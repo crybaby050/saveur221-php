@@ -1,15 +1,31 @@
 @import "tailwindcss";
 
 @theme {
-    --color-bordeaux: #8B1424;
-    --color-bordeaux-sombre: #5C0A16;
-    --color-rubis: #B51F35;
-    --color-charbon: #111111;
-    --color-or: #C9A45C;
-    --color-or-clair: #E5C98B;
-    --color-ivoire: #FAF7F2;
-    --color-creme: #F1E9DC;
-    --color-gris-chaud: #8A8178;
+    /* Accent principal — remplace bordeaux, garde le même rôle (boutons, liens actifs, éléments forts) */
+    --color-bordeaux: #6C5CE7;
+    --color-bordeaux-sombre: #5443CE;
+
+    /* Fond sombre — sidebar, remplace charbon, teinte légèrement violine plutôt que noir pur */
+    --color-charbon: #15121F;
+
+    /* Fond clair de l'application — remplace ivoire, gris très clair/lavande au lieu de crème */
+    --color-ivoire: #F7F7FB;
+    --color-creme: #EFEFF7;
+
+    /* Accents secondaires pour badges de cartes / statuts, nouveaux tokens */
+    --color-succes: #16A34A;
+    --color-info: #3B82F6;
+    --color-alerte: #F97316;
+    --color-danger: #EF4444;
+
+    /* Neutres texte, inchangés dans leur rôle */
+    --color-gris-chaud: #8A8798;
+
+    /* Ancien "or" repositionné en accent doré secondaire discret, encore
+        utilisé ponctuellement (ex: étoiles d'avis) plutôt que comme couleur
+       structurante */
+    --color-or: #F5A623;
+    --color-or-clair: #FCE1B0;
 
     --font-voice: "Playfair Display", serif;
     --font-sans: "Inter", sans-serif;
