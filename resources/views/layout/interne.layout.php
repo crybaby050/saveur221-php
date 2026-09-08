@@ -10,8 +10,6 @@ use Core\View;
  * et accepte deux variables optionnelles passées par chaque vue :
  * - $titrePage : titre affiché dans la topbar (ex. "Tableau de bord")
  * - $section   : identifiant de la section active pour la sidebar
- *                (ex. 'dashboard', 'categories', 'produits'...), utilisé
- *                pour surligner le bon lien de menu
  */
 
 $utilisateur = Session::get('utilisateur_interne');
@@ -21,89 +19,24 @@ $estAdmin = $role === Role::ADMIN;
 $section ??= '';
 $titrePage ??= '';
 
-// Initiales pour l'avatar de la topbar (ex. "Amadou Diop" -> "AD")
 $initiales = $utilisateur
     ? mb_strtoupper(mb_substr($utilisateur->prenom, 0, 1) . mb_substr($utilisateur->nom, 0, 1))
     : '??';
 
 $libelleRole = $estAdmin ? 'Administrateur' : 'Gérant';
 
-/*
- * Définition des liens de menu ici plutôt que dispersés dans le HTML :
- * plus simple à étendre, et permet de générer la sidebar par une boucle
- * unique tout en gardant le contrôle sur quel rôle voit quoi.
- */
 $liensMenu = [
-    [
-        'section' => 'dashboard',
-        'label' => 'Tableau de bord',
-        'href' => '/gerant/dashboard',
-        'icone' => 'grille',
-        'visible' => true,
-    ],
-    [
-        'section' => 'categories',
-        'label' => 'Catégories',
-        'href' => '/gerant/categories',
-        'icone' => 'etiquette',
-        'visible' => true,
-    ],
-    [
-        'section' => 'produits',
-        'label' => 'Produits & stock',
-        'href' => '/gerant/produits',
-        'icone' => 'boite',
-        'visible' => true,
-    ],
-    [
-        'section' => 'commandes',
-        'label' => 'Commandes',
-        'href' => '/gerant/commandes',
-        'icone' => 'liste',
-        'visible' => true,
-    ],
-    [
-        'section' => 'paiements',
-        'label' => 'Paiements',
-        'href' => '/gerant/paiements/impayees',
-        'icone' => 'portefeuille',
-        'visible' => true,
-    ],
-    [
-        'section' => 'factures',
-        'label' => 'Factures',
-        'href' => '/gerant/factures',
-        'icone' => 'document',
-        'visible' => true,
-    ],
-    [
-        'section' => 'utilisateurs',
-        'label' => 'Utilisateurs',
-        'href' => '/admin/utilisateurs',
-        'icone' => 'utilisateurs',
-        'visible' => $estAdmin,
-    ],
-    [
-        'section' => 'clients',
-        'label' => 'Clients',
-        'href' => '/admin/clients',
-        'icone' => 'personne',
-        'visible' => $estAdmin,
-    ],
-    [
-        'section' => 'avis',
-        'label' => 'Avis',
-        'href' => '/admin/avis',
-        'icone' => 'etoile',
-        'visible' => $estAdmin,
-    ],
+    ['section' => 'dashboard', 'label' => 'Tableau de bord', 'href' => '/gerant/dashboard', 'icone' => 'grille', 'visible' => true],
+    ['section' => 'categories', 'label' => 'Catégories', 'href' => '/gerant/categories', 'icone' => 'etiquette', 'visible' => true],
+    ['section' => 'produits', 'label' => 'Produits & stock', 'href' => '/gerant/produits', 'icone' => 'boite', 'visible' => true],
+    ['section' => 'commandes', 'label' => 'Commandes', 'href' => '/gerant/commandes', 'icone' => 'liste', 'visible' => true],
+    ['section' => 'paiements', 'label' => 'Paiements', 'href' => '/gerant/paiements/impayees', 'icone' => 'portefeuille', 'visible' => true],
+    ['section' => 'factures', 'label' => 'Factures', 'href' => '/gerant/factures', 'icone' => 'document', 'visible' => true],
+    ['section' => 'utilisateurs', 'label' => 'Utilisateurs', 'href' => '/admin/utilisateurs', 'icone' => 'utilisateurs', 'visible' => $estAdmin],
+    ['section' => 'clients', 'label' => 'Clients', 'href' => '/admin/clients', 'icone' => 'personne', 'visible' => $estAdmin],
+    ['section' => 'avis', 'label' => 'Avis', 'href' => '/admin/avis', 'icone' => 'etoile', 'visible' => $estAdmin],
 ];
 
-/*
- * Bibliothèque minimale d'icônes SVG inline (traits fins, cohérents avec
- * le reste du design system) — évite de dépendre d'une lib d'icônes externe
- * pour une poignée de pictos réutilisés uniquement ici.
- */
 function icone_menu(string $nom): string
 {
     $icones = [
@@ -118,7 +51,6 @@ function icone_menu(string $nom): string
         'etoile' => '<path d="M12 2.5 14.8 9l7 .6-5.3 4.6 1.6 6.8L12 17.6 5.9 21l1.6-6.8L2.2 9.6l7-.6L12 2.5Z"/>',
         'deconnexion' => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke-linecap="round"/><path d="M16 17l5-5-5-5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12H9" stroke-linecap="round"/>',
         'menu' => '<path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"/>',
-        'fermer' => '<path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/>',
     ];
 
     return $icones[$nom] ?? '';
@@ -134,45 +66,54 @@ $estActif = static fn(string $cle): bool => $section === $cle;
     <title><?= View::e($titrePage) ?> · Espace interne · Saveur221</title>
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
-<body class="font-sans bg-ivoire">
+<body class="font-sans bg-white">
 
     <div class="flex min-h-screen">
 
-        <!-- Overlay mobile, ferme la sidebar au clic en dehors -->
         <div id="overlay-sidebar" class="fixed inset-0 z-30 hidden bg-charbon/50 md:hidden"></div>
 
-        <!-- Sidebar -->
+        <!-- Sidebar : fond charbon, motifs Art déco fins en coins pour rejoindre
+             l'identité déjà posée sur la page de connexion, plutôt qu'un noir plat. -->
         <aside
             id="sidebar"
-            class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-charbon transition-transform duration-200 md:static md:translate-x-0"
+            class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col overflow-hidden bg-charbon transition-transform duration-200 md:static md:translate-x-0"
         >
-            <div class="flex h-16 items-center gap-2.5 px-5">
+            <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-40" viewBox="0 0 256 700" preserveAspectRatio="none" aria-hidden="true">
+                <g stroke="#C9A45C" stroke-width="1" fill="none">
+                    <path d="M0,0 L36,0 L36,36" opacity="0.5"/>
+                    <path d="M256,0 L220,0 L220,36" opacity="0.5"/>
+                    <path d="M0,700 L36,700 L36,664" opacity="0.5"/>
+                    <path d="M256,700 L220,700 L220,664" opacity="0.5"/>
+                </g>
+            </svg>
+
+            <div class="relative flex h-16 items-center gap-2.5 border-b border-ivoire/10 px-5">
                 <img src="/assets/images/logo/saveur221-logo.png" alt="Saveur221" class="h-8 w-auto">
                 <span class="font-voice text-lg font-medium text-ivoire">Saveur221</span>
             </div>
 
-            <nav class="mt-4 flex-1 space-y-1 overflow-y-auto px-3">
+            <nav class="relative mt-4 flex-1 space-y-1 overflow-y-auto px-3">
                 <?php foreach ($liensMenu as $lien): ?>
-                    <?php if (!$lien['visible']) continue; ?>
-                                
-                        href="<?= View::e($lien['href']) ?>"
-                        class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors <?= $estActif($lien['section'])
-                            ? 'bg-bordeaux text-ivoire'
-                            : 'text-ivoire/70 hover:bg-ivoire/10 hover:text-ivoire' ?>"
-                    >
-                        <svg class="h-[18px] w-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-                            <?= icone_menu($lien['icone']) ?>
-                        </svg>
-                        <?= View::e($lien['label']) ?>
-                    </a>
-                <?php endforeach; ?>
+    <?php if (!$lien['visible']) continue; ?>
+    
+        <a href="<?= View::e($lien['href']) ?>"
+        class="group flex items-center gap-3 rounded-md border-l-2 px-3 py-2.5 text-sm transition-colors <?= $estActif($lien['section'])
+            ? 'border-or bg-bordeaux text-ivoire'
+            : 'border-transparent text-ivoire/65 hover:border-or/40 hover:bg-ivoire/5 hover:text-ivoire' ?>"
+    >
+        <svg class="h-[18px] w-[18px] shrink-0 <?= $estActif($lien['section']) ? 'text-or-clair' : 'text-ivoire/50 group-hover:text-or-clair' ?>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+            <?= icone_menu($lien['icone']) ?>
+        </svg>
+        <?= View::e($lien['label']) ?>
+    </a>
+<?php endforeach; ?>
             </nav>
 
-            <div class="border-t border-ivoire/10 p-3">
+            <div class="relative border-t border-ivoire/10 p-3">
                 <form method="post" action="/interne/deconnexion">
                     <button
                         type="submit"
-                        class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm text-ivoire/70 transition-colors hover:bg-ivoire/10 hover:text-ivoire"
+                        class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm text-ivoire/65 transition-colors hover:bg-ivoire/5 hover:text-ivoire"
                     >
                         <svg class="h-[18px] w-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                             <?= icone_menu('deconnexion') ?>
@@ -183,10 +124,8 @@ $estActif = static fn(string $cle): bool => $section === $cle;
             </div>
         </aside>
 
-        <!-- Zone principale -->
         <div class="flex flex-1 flex-col">
 
-            <!-- Topbar -->
             <header class="flex h-16 items-center justify-between border-b border-or-clair bg-white px-5 md:px-8">
                 <div class="flex items-center gap-3">
                     <button
@@ -211,23 +150,28 @@ $estActif = static fn(string $cle): bool => $section === $cle;
                         </p>
                         <p class="text-xs text-gris-chaud"><?= View::e($libelleRole) ?></p>
                     </div>
-                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-bordeaux text-xs font-medium text-ivoire">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-bordeaux text-xs font-medium text-ivoire ring-2 ring-or-clair/50">
                         <?= View::e($initiales) ?>
                     </div>
                 </div>
             </header>
 
-            <!-- Contenu de la page -->
-            <main class="flex-1 px-5 py-6 md:px-8 md:py-8">
-                <?= $contenu ?>
+            <!-- Contenu : léger motif de fond (assiette) très discret, cohérent
+                 avec le traitement décoratif déjà utilisé sur la connexion. -->
+            <main class="relative flex-1 overflow-hidden px-5 py-6 md:px-8 md:py-8">
+                <svg class="pointer-events-none absolute -bottom-16 -right-16 h-64 w-64 text-bordeaux opacity-[0.03]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.6" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"/>
+                    <circle cx="12" cy="12" r="5"/>
+                </svg>
+                <div class="relative">
+                    <?= $contenu ?>
+                </div>
             </main>
 
         </div>
     </div>
 
     <script>
-        // Ouverture/fermeture de la sidebar sur mobile — sur desktop (md:)
-        // elle reste toujours visible via les classes Tailwind ci-dessus.
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay-sidebar');
         const boutonOuvrir = document.getElementById('bouton-ouvrir-sidebar');
