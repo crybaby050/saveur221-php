@@ -111,6 +111,7 @@ $carteStat = static function (string $icone, string $label, string $valeur, stri
             <?php endif; ?>
         </div>
 
+        
     </div>
 
 </div>
