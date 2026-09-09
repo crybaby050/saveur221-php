@@ -9,6 +9,7 @@ use App\Exceptions\EmailDejaUtiliseException;
 use App\Exceptions\MotDePasseInvalideException;
 use App\Models\Utilisateur;
 use App\Repositories\UtilisateurRepository;
+use App\Exceptions\ModificationCompteProprieException;
 
 /*
  * Applique les règles métier liées aux utilisateurs internes (Gérant,
@@ -163,15 +164,25 @@ final class UtilisateurService
     }
 
     /**
-     * Change le rôle d'un utilisateur interne (ADMIN <-> GERANT).
+     * Change le rôle d'un utilisateur interne (ADMIN <-> GERANT). Un
+     * administrateur ne peut pas changer son propre rôle, pour éviter qu'il
+     * ne se retire accidentellement ses propres droits d'accès.
      *
-     * @param int  $id   Identifiant de l'utilisateur concerné
-     * @param Role $role Nouveau rôle à attribuer
+     * @param int  $id           Identifiant de l'utilisateur concerné
+     * @param Role $role         Nouveau rôle à attribuer
+     * @param int  $connecteId   Identifiant de l'administrateur effectuant l'action
      *
      * @throws \InvalidArgumentException si l'utilisateur n'existe pas
+     * @throws ModificationCompteProprieException si l'administrateur tente de modifier son propre rôle
      */
-    public function changerRole(int $id, Role $role): void
+    public function changerRole(int $id, Role $role, int $connecteId): void
     {
+        if ($id === $connecteId) {
+            throw new \App\Exceptions\ModificationCompteProprieException(
+                'Vous ne pouvez pas modifier votre propre rôle.'
+            );
+        }
+
         $utilisateur = $this->trouverOuLever($id);
         $utilisateur->changerRole($role);
 

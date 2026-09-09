@@ -124,10 +124,25 @@ final class UtilisateurInterneController extends ControllerInterneBase
 
     public function changerRole(string $id): void
     {
-        $this->exigerAdministrateur();
+        $admin = $this->exigerAdministrateur();
 
-        $this->utilisateurService->changerRole((int) $id, Role::from($_POST['role'] ?? Role::GERANT->value));
+        try {
+            $this->utilisateurService->changerRole(
+                (int) $id,
+                Role::from($_POST['role'] ?? Role::GERANT->value),
+                $admin->getId(),
+            );
 
-        Response::redirect('/admin/utilisateurs');
+            Response::redirect('/admin/utilisateurs');
+        } catch (\App\Exceptions\ModificationCompteProprieException $exception) {
+            $pagination = new Paginateur($this->utilisateurService->listerUtilisateurs(), 1);
+
+            $this->afficherVueInterne('admin/utilisateurs/index', [
+                'utilisateurs' => $pagination->elements,
+                'pagination' => $pagination,
+                'motCle' => null,
+                'erreur' => $exception->getMessage(),
+            ]);
+        }
     }
 }
