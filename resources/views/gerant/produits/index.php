@@ -23,6 +23,121 @@ function badge_stock(\App\Models\Produit $produit): array
 }
 ?>
 
+<!-- Tiroir ajout/modification produit -->
+<div id="tiroir-produit" class="tiroir-overlay">
+    <div class="tiroir-panneau">
+        <div class="flex items-center justify-between border-b border-creme px-6 py-4">
+            <p id="titre-tiroir-produit" class="font-voice text-lg font-medium text-charbon">Nouveau produit</p>
+            <button type="button" data-fermer-tiroir class="text-gris-chaud hover:text-charbon">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                    <path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="px-6 py-5">
+            <img id="image-actuelle-produit" src="" alt="" class="mb-4 hidden h-32 w-full rounded-lg object-cover">
+
+            <form id="formulaire-tiroir-produit" method="post" action="/gerant/produits/ajouter" enctype="multipart/form-data" class="space-y-5">
+
+                <div>
+                    <label for="tiroir-libelle" class="mb-1.5 block text-sm font-medium text-charbon">Libellé</label>
+                    <input type="text" id="tiroir-libelle" name="libelle" required
+                        class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                </div>
+
+                <div>
+                    <label for="tiroir-description" class="mb-1.5 block text-sm font-medium text-charbon">Description</label>
+                    <textarea id="tiroir-description" name="description" rows="3"
+                        class="w-full rounded-md border border-creme bg-white px-3 py-2 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10"></textarea>
+                </div>
+
+                <div>
+                    <label for="tiroir-prix" class="mb-1.5 block text-sm font-medium text-charbon">Prix (FCFA)</label>
+                    <input type="number" id="tiroir-prix" name="prix" min="0" step="1" required
+                        class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                </div>
+
+                <div>
+                    <label for="tiroir-categorie" class="mb-1.5 block text-sm font-medium text-charbon">Catégorie</label>
+                    <select id="tiroir-categorie" name="categorie_id" required
+                        class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                        <option value="">Choisir...</option>
+                        <?php foreach ($categories as $categorie): ?>
+                            <option value="<?= $categorie->getId() ?>"><?= View::e($categorie->getNom()) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div id="champs-creation-produit" class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <div>
+                        <label for="tiroir-quantite-stock" class="mb-1.5 block text-sm font-medium text-charbon">Stock initial</label>
+                        <input type="number" id="tiroir-quantite-stock" name="quantite_stock" min="0" value="0"
+                            class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                    </div>
+                    <div>
+                        <label for="tiroir-seuil-alerte" class="mb-1.5 block text-sm font-medium text-charbon">Seuil d'alerte</label>
+                        <input type="number" id="tiroir-seuil-alerte" name="seuil_alerte" min="0" value="5"
+                            class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="tiroir-image" class="mb-1.5 block text-sm font-medium text-charbon">Image (facultatif)</label>
+                    <input type="file" id="tiroir-image" name="image" accept="image/*"
+                        class="block w-full text-sm text-gris-chaud file:mr-3 file:rounded-md file:border-0 file:bg-ivoire file:px-3 file:py-2 file:text-sm file:font-medium file:text-charbon hover:file:bg-creme">
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" data-fermer-tiroir class="rounded-md border border-creme px-4 py-2.5 text-sm font-medium text-charbon transition-colors hover:bg-ivoire">
+                        Annuler
+                    </button>
+                    <button type="submit" class="rounded-md bg-bordeaux px-5 py-2.5 text-sm font-medium text-ivoire transition-colors hover:bg-bordeaux-sombre">
+                        Enregistrer
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const tiroirProduitForm = document.getElementById('formulaire-tiroir-produit');
+    const tiroirProduitTitre = document.getElementById('titre-tiroir-produit');
+    const tiroirProduitImage = document.getElementById('image-actuelle-produit');
+    const champsCreationProduit = document.getElementById('champs-creation-produit');
+
+    function ouvrirTiroirProduitAjout() {
+        tiroirProduitForm.reset();
+        tiroirProduitForm.action = '/gerant/produits/ajouter';
+        tiroirProduitTitre.textContent = 'Nouveau produit';
+        tiroirProduitImage.classList.add('hidden');
+        champsCreationProduit.classList.remove('hidden');
+        document.getElementById('tiroir-produit').classList.add('tiroir-ouvert');
+    }
+
+    function ouvrirTiroirProduitModification(bouton) {
+        tiroirProduitForm.reset();
+        tiroirProduitForm.action = `/gerant/produits/${bouton.dataset.produitId}/modifier`;
+        tiroirProduitForm.libelle.value = bouton.dataset.produitLibelle;
+        tiroirProduitForm.description.value = bouton.dataset.produitDescription;
+        tiroirProduitForm.prix.value = bouton.dataset.produitPrix;
+        tiroirProduitForm.categorie_id.value = bouton.dataset.produitCategorieId;
+        tiroirProduitTitre.textContent = 'Modifier le produit';
+        champsCreationProduit.classList.add('hidden');
+
+        if (bouton.dataset.produitImage) {
+            tiroirProduitImage.src = bouton.dataset.produitImage;
+            tiroirProduitImage.classList.remove('hidden');
+        } else {
+            tiroirProduitImage.classList.add('hidden');
+        }
+
+        document.getElementById('tiroir-produit').classList.add('tiroir-ouvert');
+    }
+</script>
+
 <div class="space-y-6">
 
     <!-- Barre d'action -->
@@ -67,14 +182,13 @@ function badge_stock(\App\Models\Produit $produit): array
                 Suivi de stock
             </a>
 
-            <a href="/gerant/produits/ajouter"
-                class="inline-flex items-center justify-center gap-2 rounded-md bg-bordeaux px-4 py-2.5 text-sm font-medium text-ivoire transition-colors hover:bg-bordeaux-sombre"
-            >
+            <button type="button" onclick="ouvrirTiroirProduitAjout()"
+                class="inline-flex items-center justify-center gap-2 rounded-md bg-bordeaux px-4 py-2.5 text-sm font-medium text-ivoire transition-colors hover:bg-bordeaux-sombre">
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                     <path d="M12 5v14M5 12h14" stroke-linecap="round"/>
                 </svg>
                 Nouveau produit
-            </a>
+            </button>
         </div>
     </div>
 
@@ -112,9 +226,17 @@ function badge_stock(\App\Models\Produit $produit): array
                         <p class="mt-1 text-xs text-gris-chaud"><?= $produit->getQuantiteStock() ?> en stock</p>
 
                         <div class="mt-3 flex items-center gap-2">
-                            <a href="/gerant/produits/<?= $produit->getId() ?>/modifier" class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
+                            <button type="button"
+                                onclick="ouvrirTiroirProduitModification(this)"
+                                data-produit-id="<?= $produit->getId() ?>"
+                                data-produit-libelle="<?= View::e($produit->getLibelle()) ?>"
+                                data-produit-description="<?= View::e($produit->getDescription() ?? '') ?>"
+                                data-produit-prix="<?= $produit->getPrix() ?>"
+                                data-produit-categorie-id="<?= $produit->getCategorieId() ?>"
+                                data-produit-image="<?= View::e($produit->getImage() ?? '') ?>"
+                                class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
                                 Modifier
-                            </a>
+                            </button>
                             <form method="post" action="/gerant/produits/<?= $produit->getId() ?>/supprimer" class="flex-1" onsubmit="return confirm('Supprimer ce produit ?');">
                                 <button type="submit" class="w-full rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
                                     Supprimer
@@ -157,9 +279,17 @@ function badge_stock(\App\Models\Produit $produit): array
                             </td>
                             <td class="px-5 py-3">
                                 <div class="flex justify-end gap-2">
-                                    <a href="/gerant/produits/<?= $produit->getId() ?>/modifier" class="rounded-md border border-creme px-3 py-1.5 text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
+                                    <button type="button"
+                                        onclick="ouvrirTiroirProduitModification(this)"
+                                        data-produit-id="<?= $produit->getId() ?>"
+                                        data-produit-libelle="<?= View::e($produit->getLibelle()) ?>"
+                                        data-produit-description="<?= View::e($produit->getDescription() ?? '') ?>"
+                                        data-produit-prix="<?= $produit->getPrix() ?>"
+                                        data-produit-categorie-id="<?= $produit->getCategorieId() ?>"
+                                        data-produit-image="<?= View::e($produit->getImage() ?? '') ?>"
+                                        class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
                                         Modifier
-                                    </a>
+                                    </button>
                                     <form method="post" action="/gerant/produits/<?= $produit->getId() ?>/supprimer" onsubmit="return confirm('Supprimer ce produit ?');">
                                         <button type="submit" class="rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
                                             Supprimer

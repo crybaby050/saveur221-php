@@ -6,6 +6,94 @@ $titrePage = 'Catégories';
 $section = 'categories';
 ?>
 
+<!-- Tiroir ajout/modification catégorie -->
+<div id="tiroir-categorie" class="tiroir-overlay">
+    <div class="tiroir-panneau">
+        <div class="flex items-center justify-between border-b border-creme px-6 py-4">
+            <p id="titre-tiroir-categorie" class="font-voice text-lg font-medium text-charbon">Nouvelle catégorie</p>
+            <button type="button" data-fermer-tiroir class="text-gris-chaud hover:text-charbon">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                    <path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="px-6 py-5">
+            <img id="image-actuelle-categorie" src="" alt="" class="mb-4 hidden h-32 w-full rounded-lg object-cover">
+
+            <form id="formulaire-tiroir-categorie" method="post" action="/gerant/categories/ajouter" enctype="multipart/form-data" class="flex flex-col gap-4">
+
+                <div>
+                    <label for="tiroir-nom" class="mb-1.5 block text-sm text-charbon">Nom</label>
+                    <input type="text" id="tiroir-nom" name="nom" required
+                        class="h-11 w-full rounded-md border border-creme bg-white px-3.5 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                </div>
+
+                <div>
+                    <label for="tiroir-description-categorie" class="mb-1.5 block text-sm text-charbon">Description (facultatif)</label>
+                    <textarea id="tiroir-description-categorie" name="description" rows="3"
+                        class="w-full rounded-md border border-creme bg-white px-3.5 py-2.5 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10"></textarea>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label for="tiroir-couleur" class="mb-1.5 block text-sm text-charbon">Couleur</label>
+                        <input type="color" id="tiroir-couleur" name="couleur"
+                            class="h-11 w-full cursor-pointer rounded-md border border-creme bg-white px-1.5">
+                    </div>
+                    <div class="flex-1">
+                        <label for="tiroir-image-categorie" class="mb-1.5 block text-sm text-charbon">Image (facultatif)</label>
+                        <input type="file" id="tiroir-image-categorie" name="image" accept="image/*"
+                            class="w-full rounded-md border border-creme bg-white px-3 py-2 text-sm text-charbon file:mr-3 file:rounded file:border-0 file:bg-ivoire file:px-2.5 file:py-1 file:text-xs">
+                    </div>
+                </div>
+
+                <div class="mt-2 flex justify-end gap-3">
+                    <button type="button" data-fermer-tiroir class="rounded-md border border-creme px-4 py-2.5 text-sm font-medium text-charbon transition-colors hover:bg-ivoire">
+                        Annuler
+                    </button>
+                    <button type="submit" class="rounded-md bg-bordeaux px-5 py-2.5 text-sm font-medium text-ivoire transition-colors hover:bg-bordeaux-sombre">
+                        Enregistrer
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const tiroirCategorieForm = document.getElementById('formulaire-tiroir-categorie');
+    const tiroirCategorieTitre = document.getElementById('titre-tiroir-categorie');
+    const tiroirCategorieImage = document.getElementById('image-actuelle-categorie');
+
+    function ouvrirTiroirCategorieAjout() {
+        tiroirCategorieForm.reset();
+        tiroirCategorieForm.action = '/gerant/categories/ajouter';
+        tiroirCategorieTitre.textContent = 'Nouvelle catégorie';
+        tiroirCategorieImage.classList.add('hidden');
+        document.getElementById('tiroir-categorie').classList.add('tiroir-ouvert');
+    }
+
+    function ouvrirTiroirCategorieModification(bouton) {
+        tiroirCategorieForm.reset();
+        tiroirCategorieForm.action = `/gerant/categories/${bouton.dataset.categorieId}/modifier`;
+        tiroirCategorieForm.nom.value = bouton.dataset.categorieNom;
+        tiroirCategorieForm.description.value = bouton.dataset.categorieDescription;
+        tiroirCategorieForm.couleur.value = bouton.dataset.categorieCouleur;
+        tiroirCategorieTitre.textContent = 'Modifier la catégorie';
+
+        if (bouton.dataset.categorieImage) {
+            tiroirCategorieImage.src = bouton.dataset.categorieImage;
+            tiroirCategorieImage.classList.remove('hidden');
+        } else {
+            tiroirCategorieImage.classList.add('hidden');
+        }
+
+        document.getElementById('tiroir-categorie').classList.add('tiroir-ouvert');
+    }
+</script>
+
 <div class="space-y-6">
 
     <!-- Barre d'action -->
@@ -26,14 +114,13 @@ $section = 'categories';
         <div class="flex items-center gap-3">
             <?php include __DIR__ . '/../../partials/bascule-affichage.php'; ?>
             
-            <a href="/gerant/categories/ajouter"
-                class="inline-flex items-center justify-center gap-2 rounded-md bg-bordeaux px-4 py-2.5 text-sm font-medium text-ivoire transition-colors hover:bg-bordeaux-sombre"
-            >
+            <button type="button" onclick="ouvrirTiroirCategorieAjout()"
+                class="inline-flex items-center justify-center gap-2 rounded-md bg-bordeaux px-4 py-2.5 text-sm font-medium text-ivoire transition-colors hover:bg-bordeaux-sombre">
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                     <path d="M12 5v14M5 12h14" stroke-linecap="round"/>
                 </svg>
                 Nouvelle catégorie
-            </a>
+            </button>
         </div>
     </div>
 
@@ -67,9 +154,16 @@ $section = 'categories';
                             <p class="mt-1 line-clamp-2 text-xs text-gris-chaud"><?= View::e($categorie->getDescription()) ?></p>
                         <?php endif; ?>
                         <div class="mt-3 flex items-center gap-2">
-                            <a href="/gerant/categories/<?= $categorie->getId() ?>/modifier" class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
+                            <button type="button"
+                                onclick="ouvrirTiroirCategorieModification(this)"
+                                data-categorie-id="<?= $categorie->getId() ?>"
+                                data-categorie-nom="<?= View::e($categorie->getNom()) ?>"
+                                data-categorie-description="<?= View::e($categorie->getDescription() ?? '') ?>"
+                                data-categorie-couleur="<?= View::e($categorie->getCouleur() ?? '#6C5CE7') ?>"
+                                data-categorie-image="<?= View::e($categorie->getImage() ?? '') ?>"
+                                class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
                                 Modifier
-                            </a>
+                            </button>
                             <form method="post" action="/gerant/categories/<?= $categorie->getId() ?>/supprimer" class="flex-1" onsubmit="return confirm('Supprimer cette catégorie ?');">
                                 <button type="submit" class="w-full rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
                                     Supprimer
@@ -103,9 +197,16 @@ $section = 'categories';
                             <td class="px-5 py-3 text-gris-chaud"><?= View::e($categorie->getDescription() ?? '—') ?></td>
                             <td class="px-5 py-3">
                                 <div class="flex justify-end gap-2">
-                                    <a href="/gerant/categories/<?= $categorie->getId() ?>/modifier" class="rounded-md border border-creme px-3 py-1.5 text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
+                                    <button type="button"
+                                        onclick="ouvrirTiroirCategorieModification(this)"
+                                        data-categorie-id="<?= $categorie->getId() ?>"
+                                        data-categorie-nom="<?= View::e($categorie->getNom()) ?>"
+                                        data-categorie-description="<?= View::e($categorie->getDescription() ?? '') ?>"
+                                        data-categorie-couleur="<?= View::e($categorie->getCouleur() ?? '#6C5CE7') ?>"
+                                        data-categorie-image="<?= View::e($categorie->getImage() ?? '') ?>"
+                                        class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
                                         Modifier
-                                    </a>
+                                    </button>
                                     <form method="post" action="/gerant/categories/<?= $categorie->getId() ?>/supprimer" onsubmit="return confirm('Supprimer cette catégorie ?');">
                                         <button type="submit" class="rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
                                             Supprimer
