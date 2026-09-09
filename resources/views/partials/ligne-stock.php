@@ -1,4 +1,7 @@
 <?php
+
+use Core\View;
+
 /*
  * Attend $produit (App\Models\Produit) dans la portée appelante.
  * Utilisé par gerant/produits/stock.php pour éviter de répéter la même
@@ -17,7 +20,7 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
-                <form method="post" action="/gerant/produits/<?= $produit->getId() ?>/seuil-alerte" class="flex items-center gap-1.5">
+        <form method="post" action="/gerant/produits/<?= $produit->getId() ?>/approvisionner" class="flex items-center gap-1.5">
             <input
                 type="number"
                 name="quantite"
@@ -31,7 +34,7 @@
             </button>
         </form>
 
-        <form method="post" action="/gerant/produits/<?= $produit->getId() ?>/seuil" class="flex items-center gap-1.5">
+        <form method="post" action="/gerant/produits/<?= $produit->getId() ?>/seuil-alerte" class="flex items-center gap-1.5">
             <input
                 type="number"
                 name="seuil"

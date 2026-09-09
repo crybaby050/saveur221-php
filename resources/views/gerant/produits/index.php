@@ -138,6 +138,30 @@ function badge_stock(\App\Models\Produit $produit): array
     }
 </script>
 
+<!-- Tiroir suivi de stock -->
+<div id="tiroir-stock" class="tiroir-overlay">
+    <div class="tiroir-panneau">
+        <div class="flex items-center justify-between border-b border-creme px-6 py-4">
+            <p class="font-voice text-lg font-medium text-charbon">Suivi de stock</p>
+            <button type="button" data-fermer-tiroir class="text-gris-chaud hover:text-charbon">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                    <path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="px-6 py-5">
+            <?php include __DIR__ . '/../../partials/contenu-stock.php'; ?>
+        </div>
+    </div>
+</div>
+
+<script>
+    function ouvrirTiroirStock() {
+        document.getElementById('tiroir-stock').classList.add('tiroir-ouvert');
+    }
+</script>
+
 <div class="space-y-6">
 
     <!-- Barre d'action -->
@@ -173,14 +197,14 @@ function badge_stock(\App\Models\Produit $produit): array
         <div class="flex items-center gap-3">
             <?php include __DIR__ . '/../../partials/bascule-affichage.php'; ?>
 
-            <a href="/gerant/produits/stock"
+            <button type="button" onclick="ouvrirTiroirStock()"
                 class="inline-flex items-center justify-center gap-2 rounded-md border border-creme px-4 py-2.5 text-sm font-medium text-charbon transition-colors hover:bg-ivoire"
             >
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                     <path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v9l9 5 9-5V8"/>
                 </svg>
                 Suivi de stock
-            </a>
+            </button>
 
             <button type="button" onclick="ouvrirTiroirProduitAjout()"
                 class="inline-flex items-center justify-center gap-2 rounded-md bg-bordeaux px-4 py-2.5 text-sm font-medium text-ivoire transition-colors hover:bg-bordeaux-sombre">

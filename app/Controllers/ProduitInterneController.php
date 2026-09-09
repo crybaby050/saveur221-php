@@ -22,19 +22,21 @@ final class ProduitInterneController extends ControllerInterneBase
     public function index(): void
     {
         $this->exigerUtilisateurConnecte();
-
+    
         $motCle = $_GET['recherche'] ?? null;
         $categorieId = isset($_GET['categorie']) ? (int) $_GET['categorie'] : null;
-
+    
         $produits = match (true) {
             $motCle !== null => $this->produitService->rechercherProduit($motCle),
             $categorieId !== null => $this->produitService->filtrerParCategorie($categorieId),
             default => $this->produitService->listerProduits(),
         };
-
+    
         $this->afficherVueInterne('gerant/produits/index', [
             'produits' => $produits,
             'categories' => $this->categorieService->listerCategories(),
+            'stockFaible' => $this->produitService->consulterStockFaible(),
+            'ruptures' => $this->produitService->consulterRuptures(),
         ]);
     }
 
