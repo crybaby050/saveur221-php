@@ -232,6 +232,35 @@ $estActif = static fn(string $cle): bool => $section === $cle;
             }
         });
 
+        // Bascule grille/tableau, réutilisée sur toutes les pages de listing.
+// Chaque contenu concerné doit porter data-vue-contenu="grille" ou
+// data-vue-contenu="table" ; les boutons portent data-bascule-vue de
+// même valeur. Préférence mémorisée par utilisateur, appliquée par
+// défaut sur chaque nouvelle page de liste.
+const boutonsVue = document.querySelectorAll('[data-bascule-vue]');
+const conteneursVue = document.querySelectorAll('[data-vue-contenu]');
+
+function appliquerVue(vue) {
+    conteneursVue.forEach((conteneur) => {
+        conteneur.classList.toggle('hidden', conteneur.dataset.vueContenu !== vue);
+    });
+    boutonsVue.forEach((bouton) => {
+        const actif = bouton.dataset.basculeVue === vue;
+        bouton.classList.toggle('bg-bordeaux', actif);
+        bouton.classList.toggle('text-ivoire', actif);
+        bouton.classList.toggle('text-gris-chaud', !actif);
+    });
+    localStorage.setItem('affichage-liste', vue);
+}
+
+if (boutonsVue.length > 0) {
+    boutonsVue.forEach((bouton) => {
+        bouton.addEventListener('click', () => appliquerVue(bouton.dataset.basculeVue));
+    });
+
+    appliquerVue(localStorage.getItem('affichage-liste') || 'grille');
+}
+
         boutonOuvrir.addEventListener('click', ouvrirSidebar);
         overlay.addEventListener('click', fermerSidebar);
     </script>
