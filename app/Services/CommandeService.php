@@ -371,41 +371,57 @@ final class CommandeService
     }
 
     /**
+     * Illustration affichée pour tout produit sans image (n'a jamais reçu
+     * d'upload Cloudinary) — même valeur que ProduitService::IMAGE_PAR_DEFAUT,
+     * dupliquée ici pour ne pas coupler les deux services sur une constante
+     * partagée.
+     */
+    private const IMAGE_PAR_DEFAUT = '/assets/images/produit-defaut.svg';
+    
+    /**
      * Regroupe les lignes de toutes les commandes par produit, pour en
      * déduire le produit le plus vendu et le top 3. Calcul volontairement
      * simple (une seule passe en mémoire), suffisant pour le volume de
      * données attendu dans ce projet.
      *
      * @param Commande[] $commandes Commandes à parcourir
-     * @return array{0: string, 1: string[]} Libellé du produit le plus vendu, et top 3 formaté
+     * @return array{0: string, 1: array<array{nom: string, image: string, quantite: int}>} Libellé du produit le plus vendu, et top 3 avec image
      */
     private function calculerClassementProduits(array $commandes): array
     {
         $quantitesParProduit = [];
-
+    
         foreach ($commandes as $commande) {
             $lignes = $this->ligneCommandeRepository->trouverParCommande($commande->getId());
-
+    
             foreach ($lignes as $ligne) {
                 $produitId = $ligne->getProduitId();
                 $quantitesParProduit[$produitId] = ($quantitesParProduit[$produitId] ?? 0) + $ligne->getQuantite();
             }
         }
-
+    
         if (empty($quantitesParProduit)) {
             return ['Aucune vente enregistrée', []];
         }
-
+    
         arsort($quantitesParProduit);
-
+    
         $produitLePlusVendu = $this->formaterProduit(array_key_first($quantitesParProduit), $quantitesParProduit);
-
+    
         $top3 = array_slice($quantitesParProduit, 0, 3, preserve_keys: true);
         $top3Produits = array_map(
-            fn(int $produitId) => $this->formaterProduit($produitId, $quantitesParProduit),
+            function (int $produitId) use ($quantitesParProduit): array {
+                $produit = $this->produitRepository->trouverParId($produitId);
+    
+                return [
+                    'nom' => $produit?->getLibelle() ?? "Produit inconnu (id {$produitId})",
+                    'image' => $produit?->getImage() ?? self::IMAGE_PAR_DEFAUT,
+                    'quantite' => $quantitesParProduit[$produitId],
+                ];
+            },
             array_keys($top3)
         );
-
+    
         return [$produitLePlusVendu, $top3Produits];
     }
 
