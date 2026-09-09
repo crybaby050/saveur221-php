@@ -35,6 +35,8 @@ final class ProduitInterneController extends ControllerInterneBase
         $this->afficherVueInterne('gerant/produits/index', [
             'produits' => $produits,
             'categories' => $this->categorieService->listerCategories(),
+            'stockFaible' => $this->produitService->consulterStockFaible(),
+            'ruptures' => $this->produitService->consulterRuptures(),
         ]);
     }
 
@@ -115,16 +117,16 @@ final class ProduitInterneController extends ControllerInterneBase
 
         $this->produitService->approvisionner((int) $id, (int) ($_POST['quantite'] ?? 0));
 
-        Response::redirect('/gerant/produits/stock');
+        Response::redirect('/gerant/produits?stock=1');
     }
 
     public function definirSeuilAlerte(string $id): void
     {
         $this->exigerUtilisateurConnecte();
-
+    
         $this->produitService->definirSeuilAlerte((int) $id, (int) ($_POST['seuil'] ?? 0));
-
-        Response::redirect('/gerant/produits/stock');
+    
+        Response::redirect('/gerant/produits?stock=1');
     }
 
     private function uploaderImageSiPresente(string $dossier): ?string
