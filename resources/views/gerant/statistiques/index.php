@@ -109,7 +109,7 @@ $parserTopProduit = static function (string $libelle): array {
                                 </span>
                             </div>
                             
-                                href="/gerant/commandes/<?= $commande->getId() ?>"
+                            <a href="/gerant/commandes/<?= $commande->getId() ?>"
                                 aria-label="Traiter la commande <?= View::e($commande->getNumeroCommande()) ?>"
                                 class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-creme text-charbon transition-colors hover:bg-ivoire"
                             >
