@@ -327,16 +327,6 @@ document.querySelectorAll('.tiroir-overlay').forEach((overlay) => {
     });
 });
 
-document.getElementById('modal-suppression-confirmer').addEventListener('click', () => {
-    console.log('CONFIRMATION CLIQUEE');
-
-    if (formulaireASupprimer) {
-        console.log('FORMULAIRE TROUVE');
-        formulaireASupprimer.submit();
-    } else {
-        console.log('AUCUN FORMULAIRE');
-    }
-});
 
         boutonOuvrir.addEventListener('click', ouvrirSidebar);
         overlay.addEventListener('click', fermerSidebar);

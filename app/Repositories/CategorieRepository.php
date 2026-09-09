@@ -111,19 +111,29 @@ final class CategorieRepository implements RepositoryInterface
      * @return Categorie La catégorie créée, avec son identifiant généré
      */
     public function creer(object $entite): Categorie
-    {
-        $requete = Database::getConnexion()->prepare(
-            'INSERT INTO categories (nom, description) VALUES (:nom, :description) RETURNING id'
-        );
-        $requete->execute([
-            'nom' => $entite->getNom(),
-            'description' => $entite->getDescription(),
-        ]);
+{
+    $requete = Database::getConnexion()->prepare(
+        'INSERT INTO categories (nom, description, image, couleur)
+         VALUES (:nom, :description, :image, :couleur)
+         RETURNING id'
+    );
+    $requete->execute([
+        'nom' => $entite->getNom(),
+        'description' => $entite->getDescription(),
+        'image' => $entite->getImage(),
+        'couleur' => $entite->getCouleur(),
+    ]);
 
-        $id = (int) $requete->fetchColumn();
+    $id = (int) $requete->fetchColumn();
 
-        return new Categorie($id, $entite->getNom(), $entite->getDescription());
-    }
+    return new Categorie(
+        $id,
+        $entite->getNom(),
+        $entite->getDescription(),
+        $entite->getImage(),
+        $entite->getCouleur(),
+    );
+}
 
     /**
      * Met à jour l'ensemble des champs d'une catégorie existante, y compris

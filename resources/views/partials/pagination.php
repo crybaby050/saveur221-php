@@ -17,11 +17,11 @@ if ($pagination->aPlusieursPages()):
     </p>
     <div class="flex items-center gap-1">
         
-            href="<?= View::e($construireUrl(max(1, $pagination->page - 1))) ?>"
+        <a href="<?= View::e($construireUrl(max(1, $pagination->page - 1))) ?>"
             class="rounded-md border border-creme px-3 py-1.5 text-xs font-medium text-charbon transition-colors hover:bg-ivoire <?= $pagination->page <= 1 ? 'pointer-events-none opacity-40' : '' ?>"
         >Précédent</a>
         
-            href="<?= View::e($construireUrl(min($pagination->totalPages, $pagination->page + 1))) ?>"
+        <a href="<?= View::e($construireUrl(min($pagination->totalPages, $pagination->page + 1))) ?>"
             class="rounded-md border border-creme px-3 py-1.5 text-xs font-medium text-charbon transition-colors hover:bg-ivoire <?= $pagination->page >= $pagination->totalPages ? 'pointer-events-none opacity-40' : '' ?>"
         >Suivant</a>
     </div>
