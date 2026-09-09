@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Exceptions\AccesRefuseException;
 use App\Exceptions\AvisDejaDeposeException;
 use App\Exceptions\AvisNonAutoriseException;
-use App\Exceptions\CommandeInexistanteException;
 use App\Services\AuthService;
 use App\Services\AvisService;
 use Core\Response;
 use Core\View;
 
 /*
- * Gère le dépôt d'un avis par le client, sur une commande qu'il a
- * effectivement passée et qui a été retirée.
+ * Gère le dépôt d'un avis par le client, sur un produit qu'il a
+ * effectivement commandé et reçu.
  */
 final class AvisController extends ControllerClientBase
 {
@@ -27,57 +25,45 @@ final class AvisController extends ControllerClientBase
     }
 
     /**
-     * Affiche le formulaire de dépôt d'avis pour une commande.
+     * Affiche le formulaire de dépôt d'avis pour un produit.
      *
-     * @param string $commandeId Identifiant de la commande, extrait de l'URL par le Router
+     * @param string $produitId Identifiant du produit, extrait de l'URL par le Router
      */
-    public function afficherFormulaire(string $commandeId): void
+    public function afficherFormulaire(string $produitId): void
     {
-        $this->exigerClientConnecte();
+        $client = $this->exigerClientConnecte();
 
-        View::render('avis/formulaire', ['commandeId' => (int) $commandeId]);
+        if (!$this->avisService->peutDeposerAvis($client->getId(), (int) $produitId)) {
+            Response::redirect('/produits/' . $produitId);
+            return;
+        }
+
+        View::render('avis/formulaire', ['produitId' => (int) $produitId], layout: 'layout/base.layout');
     }
 
     /**
      * Traite la soumission du formulaire de dépôt d'avis.
      *
-     * @param string $commandeId Identifiant de la commande, extrait de l'URL par le Router
+     * @param string $produitId Identifiant du produit, extrait de l'URL par le Router
      */
-    public function deposer(string $commandeId): void
+    public function deposer(string $produitId): void
     {
         $client = $this->exigerClientConnecte();
 
         try {
             $this->avisService->deposerAvis(
                 clientId: $client->getId(),
-                commandeId: (int) $commandeId,
+                produitId: (int) $produitId,
                 note: (int) ($_POST['note'] ?? 0),
                 commentaire: $_POST['commentaire'] ?: null,
             );
 
-            Response::redirect("/commandes/{$commandeId}");
-        } catch (CommandeInexistanteException|AccesRefuseException|AvisNonAutoriseException|AvisDejaDeposeException $exception) {
+            Response::redirect("/produits/{$produitId}");
+        } catch (AvisNonAutoriseException|AvisDejaDeposeException $exception) {
             View::render('avis/formulaire', [
-                'commandeId' => (int) $commandeId,
+                'produitId' => (int) $produitId,
                 'erreur' => $exception->getMessage(),
-            ]);
+            ], layout: 'layout/base.layout');
         }
-    }
-
-    /**
-     * Interrompt la requête et redirige vers la connexion si aucun client
-     * n'est actuellement authentifié, sinon retourne le client connecté.
-     *
-     * @return \App\Models\Client Le client actuellement connecté
-     */
-    private function exigerClientConnecte(): \App\Models\Client
-    {
-        $client = $this->authService->clientConnecte();
-
-        if ($client === null) {
-            Response::redirect('/connexion');
-        }
-
-        return $client;
     }
 }
