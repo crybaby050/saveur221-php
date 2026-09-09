@@ -21,13 +21,19 @@ final class CategorieInterneController extends ControllerInterneBase
     public function index(): void
     {
         $this->exigerUtilisateurConnecte();
-
+    
         $motCle = $_GET['recherche'] ?? null;
-        $categories = $motCle !== null
+        $categories = $motCle !== null && $motCle !== ''
             ? $this->categorieService->rechercherCategorie($motCle)
             : $this->categorieService->listerCategories();
-
-        $this->afficherVueInterne('gerant/categories/index', ['categories' => $categories]);
+    
+        $pagination = new \Core\Paginateur($categories, (int) ($_GET['page'] ?? 1));
+    
+        $this->afficherVueInterne('gerant/categories/index', [
+            'categories' => $pagination->elements,
+            'pagination' => $pagination,
+            'motCle' => $motCle,
+        ]);
     }
 
     public function afficherAjout(): void
