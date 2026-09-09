@@ -35,6 +35,7 @@ final class CommandeService
         private readonly ProduitRepository $produitRepository,
         private readonly ProduitService $produitService,
         private readonly FactureService $factureService,
+        private readonly \App\Repositories\AvisRepository $avisRepository,
     ) {
     }
 
@@ -377,51 +378,52 @@ final class CommandeService
      * partagée.
      */
     private const IMAGE_PAR_DEFAUT = '/assets/images/produit-defaut.svg';
-    
-    /**
+
+        /**
      * Regroupe les lignes de toutes les commandes par produit, pour en
-     * déduire le produit le plus vendu et le top 3. Calcul volontairement
-     * simple (une seule passe en mémoire), suffisant pour le volume de
-     * données attendu dans ce projet.
+     * déduire le produit le plus vendu et le top 3, avec image, description
+     * et note moyenne réelle du produit.
      *
      * @param Commande[] $commandes Commandes à parcourir
-     * @return array{0: string, 1: array<array{nom: string, image: string, quantite: int}>} Libellé du produit le plus vendu, et top 3 avec image
+     * @return array{0: string, 1: array<array{nom: string, image: string, description: string|null, quantite: int, note: float|null}>}
      */
     private function calculerClassementProduits(array $commandes): array
     {
         $quantitesParProduit = [];
-    
+
         foreach ($commandes as $commande) {
             $lignes = $this->ligneCommandeRepository->trouverParCommande($commande->getId());
-    
+
             foreach ($lignes as $ligne) {
                 $produitId = $ligne->getProduitId();
                 $quantitesParProduit[$produitId] = ($quantitesParProduit[$produitId] ?? 0) + $ligne->getQuantite();
             }
         }
-    
+
         if (empty($quantitesParProduit)) {
             return ['Aucune vente enregistrée', []];
         }
-    
+
         arsort($quantitesParProduit);
-    
+
         $produitLePlusVendu = $this->formaterProduit(array_key_first($quantitesParProduit), $quantitesParProduit);
-    
+
         $top3 = array_slice($quantitesParProduit, 0, 3, preserve_keys: true);
         $top3Produits = array_map(
             function (int $produitId) use ($quantitesParProduit): array {
                 $produit = $this->produitRepository->trouverParId($produitId);
-    
+
                 return [
                     'nom' => $produit?->getLibelle() ?? "Produit inconnu (id {$produitId})",
                     'image' => $produit?->getImage() ?? self::IMAGE_PAR_DEFAUT,
+                    'description' => $produit?->getDescription(),
                     'quantite' => $quantitesParProduit[$produitId],
+                    'note' => $this->avisRepository->noteMoyenne($produitId),
                 ];
             },
             array_keys($top3)
         );
-    
+
         return [$produitLePlusVendu, $top3Produits];
     }
 

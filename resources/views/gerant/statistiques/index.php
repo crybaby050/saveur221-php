@@ -135,13 +135,13 @@ $parserTopProduit = static function (string $libelle): array {
                     $donnees = [
                         'image' => $produitTop['image'],
                         'nom' => $produitTop['nom'],
-                        'description' => null,
+                        'description' => $produitTop['description'],
                         'ventes' => $produitTop['quantite'],
                         'rang' => $index + 1,
-                        'note' => null,
+                        'note' => $produitTop['note'],
                         'croissance' => null,
                     ];
-                
+
                     include __DIR__ . '/../../partials/carte-produit-top.php';
                     ?>
                 <?php endforeach; ?>
