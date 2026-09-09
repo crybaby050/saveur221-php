@@ -164,7 +164,7 @@ $section = 'categories';
                                 class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
                                 Modifier
                             </button>
-                            <form method="post" action="/gerant/categories/<?= $categorie->getId() ?>/supprimer" class="flex-1" onsubmit="return confirm('Supprimer cette catégorie ?');">
+                            <form method="post" action="/gerant/categories/<?= $categorie->getId() ?>/supprimer" class="flex-1" onclick="demanderSuppression(this.closest('form'), 'Supprimer « <?= View::e($categorie->getLibelle()) ?> » ?')">
                                 <button type="submit" class="w-full rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
                                     Supprimer
                                 </button>
@@ -207,7 +207,7 @@ $section = 'categories';
                                         class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
                                         Modifier
                                     </button>
-                                    <form method="post" action="/gerant/categories/<?= $categorie->getId() ?>/supprimer" onsubmit="return confirm('Supprimer cette catégorie ?');">
+                                    <form method="post" action="/gerant/categories/<?= $categorie->getId() ?>/supprimer" onclick="demanderSuppression(this.closest('form'), 'Supprimer « <?= View::e($categorie->getLibelle()) ?> » ?')">
                                         <button type="submit" class="rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
                                             Supprimer
                                         </button>

@@ -201,7 +201,55 @@ $estActif = static fn(string $cle): bool => $section === $cle;
             </main>
 
         </div>
+
+
     </div>
+
+    <!-- Modal de confirmation de suppression, partagé par tout l'espace interne -->
+<div id="modal-suppression" class="fixed inset-0 z-50 hidden items-center justify-center bg-charbon/50 p-4">
+    <div class="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+        <p class="font-voice text-lg font-medium text-charbon">Confirmer la suppression</p>
+        <p id="modal-suppression-message" class="mt-2 text-sm text-gris-chaud">
+            Cette action est irréversible.
+        </p>
+        <div class="mt-5 flex justify-end gap-3">
+            <button type="button" id="modal-suppression-annuler"
+                class="rounded-md border border-creme px-4 py-2 text-sm font-medium text-charbon transition-colors hover:bg-ivoire">
+                Annuler
+            </button>
+            <button type="button" id="modal-suppression-confirmer"
+                class="rounded-md bg-danger px-4 py-2 text-sm font-medium text-ivoire transition-colors hover:bg-danger/90">
+                Supprimer
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let formulaireASupprimer = null;
+
+    function demanderSuppression(formulaire, message) {
+        formulaireASupprimer = formulaire;
+        document.getElementById('modal-suppression-message').textContent =
+            message || 'Cette action est irréversible.';
+        document.getElementById('modal-suppression').classList.remove('hidden');
+        document.getElementById('modal-suppression').classList.add('flex');
+    }
+
+    function fermerModalSuppression() {
+        formulaireASupprimer = null;
+        document.getElementById('modal-suppression').classList.add('hidden');
+        document.getElementById('modal-suppression').classList.remove('flex');
+    }
+
+    document.getElementById('modal-suppression-annuler').addEventListener('click', fermerModalSuppression);
+
+    document.getElementById('modal-suppression-confirmer').addEventListener('click', () => {
+        if (formulaireASupprimer) {
+            formulaireASupprimer.submit();
+        }
+    });
+</script>
 
     <script>
         const sidebar = document.getElementById('sidebar');
@@ -277,6 +325,17 @@ document.querySelectorAll('.tiroir-overlay').forEach((overlay) => {
             overlay.classList.remove('tiroir-ouvert');
         }
     });
+});
+
+document.getElementById('modal-suppression-confirmer').addEventListener('click', () => {
+    console.log('CONFIRMATION CLIQUEE');
+
+    if (formulaireASupprimer) {
+        console.log('FORMULAIRE TROUVE');
+        formulaireASupprimer.submit();
+    } else {
+        console.log('AUCUN FORMULAIRE');
+    }
 });
 
         boutonOuvrir.addEventListener('click', ouvrirSidebar);

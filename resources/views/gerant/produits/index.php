@@ -237,11 +237,14 @@ function badge_stock(\App\Models\Produit $produit): array
                                 class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
                                 Modifier
                             </button>
-                            <form method="post" action="/gerant/produits/<?= $produit->getId() ?>/supprimer" class="flex-1" onsubmit="return confirm('Supprimer ce produit ?');">
-                                <button type="submit" class="w-full rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
-                                    Supprimer
-                                </button>
-                            </form>
+                            <form method="post" action="/gerant/produits/<?= $produit->getId() ?>/supprimer" class="flex-1">
+    <button
+        type="button"
+        onclick="demanderSuppression(this.closest('form'), 'Supprimer « <?= View::e($produit->getLibelle()) ?> » ?')"
+        class="w-full rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
+        Supprimer
+    </button>
+</form>
                         </div>
                     </div>
                 </div>
@@ -290,11 +293,13 @@ function badge_stock(\App\Models\Produit $produit): array
                                         class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
                                         Modifier
                                     </button>
-                                    <form method="post" action="/gerant/produits/<?= $produit->getId() ?>/supprimer" onsubmit="return confirm('Supprimer ce produit ?');">
-                                        <button type="submit" class="rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
-                                            Supprimer
-                                        </button>
-                                    </form>
+                                    <form method="post" action="/gerant/produits/<?= $produit->getId() ?>/supprimer" class="flex-1">
+                                    <button type="button"
+                                        onclick="demanderSuppression(this.closest('form'), 'Supprimer « <?= View::e($produit->getLibelle()) ?> » ?')"
+                                        class="w-full rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
+                                        Supprimer
+                                    </button>
+                                </form>
                                 </div>
                             </td>
                         </tr>
