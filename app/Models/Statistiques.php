@@ -14,13 +14,13 @@ namespace App\Models;
 final class Statistiques
 {
     /**
-     * @param float    $chiffreAffairesJour    Chiffre d'affaires du jour courant
-     * @param float    $chiffreAffairesSemaine Chiffre d'affaires des 7 derniers jours
-     * @param float    $chiffreAffairesMois    Chiffre d'affaires du mois courant
-     * @param int      $nombreCommandes        Nombre total de commandes enregistrées
-     * @param int      $commandesEnCours       Nombre de commandes non encore retirées ni annulées
-     * @param string   $produitLePlusVendu     Libellé du produit ayant vendu le plus d'unités
-     * @param string[] $top3Produits           Libellés des trois produits les plus vendus, avec leur quantité
+     * @param float                                                  $chiffreAffairesJour    Chiffre d'affaires du jour courant
+     * @param float                                                  $chiffreAffairesSemaine Chiffre d'affaires des 7 derniers jours
+     * @param float                                                  $chiffreAffairesMois    Chiffre d'affaires du mois courant
+     * @param int                                                    $nombreCommandes        Nombre total de commandes enregistrées
+     * @param int                                                    $commandesEnCours       Nombre de commandes non encore retirées ni annulées
+     * @param string                                                 $produitLePlusVendu     Libellé du produit ayant vendu le plus d'unités
+     * @param array<array{nom: string, image: string, description: string|null, quantite: int, note: float|null}> $top3Produits Les trois produits les plus vendus, avec note moyenne réelle
      */
     public function __construct(
         public readonly float $chiffreAffairesJour,

@@ -48,6 +48,5 @@ $router->get('/profil', [ProfilController::class, 'afficher']);
 $router->post('/profil', [ProfilController::class, 'modifier']);
 $router->post('/profil/mot-de-passe', [ProfilController::class, 'changerMotDePasse']);
 
-/* Avis, déposé sur une commande retirée */
-$router->get('/commandes/{commandeId}/avis', [AvisController::class, 'afficherFormulaire']);
-$router->post('/commandes/{commandeId}/avis', [AvisController::class, 'deposer']);
+$router->get('/produits/{produitId}/avis', [AvisController::class, 'afficherFormulaire']);
+$router->post('/produits/{produitId}/avis', [AvisController::class, 'deposer']);

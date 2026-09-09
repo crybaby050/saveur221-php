@@ -7,16 +7,16 @@ namespace App\Models;
 use DateTimeImmutable;
 
 /*
- * Représente l'avis déposé par un client sur une commande retirée. La
- * contrainte d'unicité (un seul avis par commande) est déjà garantie au
- * niveau base par une clé UNIQUE sur commandeId, en complément de la
- * vérification applicative faite par le service avant insertion.
+ * Représente l'avis déposé par un client sur un produit qu'il a déjà
+ * commandé. La contrainte d'unicité (client_id, produit_id) garantit
+ * qu'un client ne peut noter un même produit qu'une seule fois, quel que
+ * soit le nombre de commandes où il l'a acheté.
  */
 final class Avis
 {
     public function __construct(
         private int $id,
-        private int $commandeId,
+        private int $produitId,
         private int $clientId,
         private int $note,
         private ?string $commentaire,
@@ -35,15 +35,13 @@ final class Avis
     }
 
     /**
-     * Identifiant de la commande sur laquelle porte cet avis. Un avis ne
-     * peut être déposé que sur une commande au statut RETIREE, règle
-     * vérifiée par le service, pas ici.
+     * Identifiant du produit sur lequel porte cet avis.
      *
-     * @return int Identifiant de la commande concernée
+     * @return int Identifiant du produit noté
      */
-    public function getCommandeId(): int
+    public function getProduitId(): int
     {
-        return $this->commandeId;
+        return $this->produitId;
     }
 
     /**
@@ -57,8 +55,7 @@ final class Avis
     }
 
     /**
-     * Note attribuée par le client, comprise entre 1 et 5. La validité de
-     * cette plage est vérifiée par le service avant construction, pas ici.
+     * Note attribuée par le client, comprise entre 1 et 5.
      *
      * @return int Note sur 5
      */
@@ -97,7 +94,7 @@ final class Avis
     {
         return new self(
             id: (int) $ligne['id'],
-            commandeId: (int) $ligne['commande_id'],
+            produitId: (int) $ligne['produit_id'],
             clientId: (int) $ligne['client_id'],
             note: (int) $ligne['note'],
             commentaire: $ligne['commentaire'],

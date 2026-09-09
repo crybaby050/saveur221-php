@@ -1,8 +1,9 @@
 <?php
 
 use App\Enums\Role;
-use Core\Session;
+//use Core\Session;
 use Core\View;
+use App\Services\AuthService;
 
 /*
  * Layout commun à tout l'espace interne (Gérant, Administrateur).
@@ -12,15 +13,14 @@ use Core\View;
  * - $section   : identifiant de la section active pour la sidebar
  */
 
-$utilisateur = Session::get('utilisateur_interne');
-$role = $utilisateur?->role ?? null;
+$role = $utilisateur?->getRole();
 $estAdmin = $role === Role::ADMIN;
 
 $section ??= '';
 $titrePage ??= '';
 
 $initiales = $utilisateur
-    ? mb_strtoupper(mb_substr($utilisateur->prenom, 0, 1) . mb_substr($utilisateur->nom, 0, 1))
+    ? mb_strtoupper(mb_substr($utilisateur->getPrenom(), 0, 1) . mb_substr($utilisateur->getNom(), 0, 1))
     : '??';
 
 $libelleRole = $estAdmin ? 'Administrateur' : 'Gérant';
@@ -94,19 +94,19 @@ $estActif = static fn(string $cle): bool => $section === $cle;
 
             <nav class="relative mt-4 flex-1 space-y-1 overflow-y-auto px-3">
                 <?php foreach ($liensMenu as $lien): ?>
-    <?php if (!$lien['visible']) continue; ?>
-    
-        <a href="<?= View::e($lien['href']) ?>"
-        class="group flex items-center gap-3 rounded-md border-l-2 px-3 py-2.5 text-sm transition-colors <?= $estActif($lien['section'])
-            ? 'border-or bg-bordeaux text-ivoire'
-            : 'border-transparent text-ivoire/65 hover:border-or/40 hover:bg-ivoire/5 hover:text-ivoire' ?>"
-    >
-        <svg class="h-[18px] w-[18px] shrink-0 <?= $estActif($lien['section']) ? 'text-or-clair' : 'text-ivoire/50 group-hover:text-or-clair' ?>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-            <?= icone_menu($lien['icone']) ?>
-        </svg>
-        <?= View::e($lien['label']) ?>
-    </a>
-<?php endforeach; ?>
+                    <?php if (!$lien['visible']) continue; ?>
+
+                        <a href="<?= View::e($lien['href']) ?>"
+                        class="group flex items-center gap-3 rounded-md border-l-2 px-3 py-2.5 text-sm transition-colors <?= $estActif($lien['section'])
+                            ? 'border-or bg-bordeaux text-ivoire'
+                            : 'border-transparent text-ivoire/65 hover:border-or/40 hover:bg-ivoire/5 hover:text-ivoire' ?>"
+                    >
+                        <svg class="h-[18px] w-[18px] shrink-0 <?= $estActif($lien['section']) ? 'text-or-clair' : 'text-ivoire/50 group-hover:text-or-clair' ?>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                            <?= icone_menu($lien['icone']) ?>
+                        </svg>
+                        <?= View::e($lien['label']) ?>
+                    </a>
+                <?php endforeach; ?>
             </nav>
 
             <div class="relative border-t border-ivoire/10 p-3">
@@ -143,15 +143,47 @@ $estActif = static fn(string $cle): bool => $section === $cle;
                     </h1>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <div class="hidden text-right sm:block">
-                        <p class="text-sm font-medium text-charbon">
-                            <?= View::e(trim(($utilisateur->prenom ?? '') . ' ' . ($utilisateur->nom ?? ''))) ?>
-                        </p>
-                        <p class="text-xs text-gris-chaud"><?= View::e($libelleRole) ?></p>
-                    </div>
-                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-bordeaux text-xs font-medium text-ivoire ring-2 ring-or-clair/50">
-                        <?= View::e($initiales) ?>
+                <div class="relative">
+                    <button
+                        id="bouton-menu-utilisateur"
+                        type="button"
+                        class="flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-ivoire"
+                    >
+                        <div class="hidden text-right sm:block">
+                            <p class="text-sm font-medium text-charbon">
+                                <?= View::e($utilisateur ? trim($utilisateur->getPrenom() . ' ' . $utilisateur->getNom()) : '') ?>
+                            </p>
+                            <p class="text-xs text-gris-chaud"><?= View::e($libelleRole) ?></p>
+                        </div>
+                        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-bordeaux text-xs font-medium text-ivoire ring-2 ring-or-clair/50">
+                            <?= View::e($initiales) ?>
+                        </div>
+                        <svg class="h-4 w-4 text-gris-chaud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                            <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <div
+                        id="menu-utilisateur"
+                        class="absolute right-0 top-full z-50 mt-2 hidden w-52 overflow-hidden rounded-lg border border-creme bg-white shadow-lg"
+                    >
+                        <a href="/interne/profil" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-charbon transition-colors hover:bg-ivoire">
+                            <svg class="h-4 w-4 text-gris-chaud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                                <circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>
+                            </svg>
+                            Modifier mon profil
+                        </a>
+                        <form method="post" action="/interne/deconnexion">
+                            <button
+                                type="submit"
+                                class="flex w-full items-center gap-2.5 border-t border-creme px-4 py-2.5 text-left text-sm text-charbon transition-colors hover:bg-ivoire"
+                            >
+                                <svg class="h-4 w-4 text-gris-chaud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                                    <?= icone_menu('deconnexion') ?>
+                                </svg>
+                                Se déconnecter
+                            </button>
+                        </form>
                     </div>
                 </div>
             </header>
@@ -185,6 +217,20 @@ $estActif = static fn(string $cle): bool => $section === $cle;
             sidebar.classList.add('-translate-x-full');
             overlay.classList.add('hidden');
         }
+
+        const boutonMenuUtilisateur = document.getElementById('bouton-menu-utilisateur');
+        const menuUtilisateur = document.getElementById('menu-utilisateur');
+                        
+        boutonMenuUtilisateur.addEventListener('click', (evenement) => {
+            evenement.stopPropagation();
+            menuUtilisateur.classList.toggle('hidden');
+        });
+                        
+        document.addEventListener('click', (evenement) => {
+            if (!menuUtilisateur.contains(evenement.target) && !boutonMenuUtilisateur.contains(evenement.target)) {
+                menuUtilisateur.classList.add('hidden');
+            }
+        });
 
         boutonOuvrir.addEventListener('click', ouvrirSidebar);
         overlay.addEventListener('click', fermerSidebar);

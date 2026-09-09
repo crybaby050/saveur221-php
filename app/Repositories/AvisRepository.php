@@ -7,16 +7,9 @@ namespace App\Repositories;
 use App\Models\Avis;
 use Core\Database;
 
-/*
- * Accès aux données de la table avis. La contrainte d'unicité sur
- * commande_id (un seul avis par commande) est garantie au niveau base ;
- * ce repository expose une méthode dédiée pour que le service puisse
- * vérifier cette règle avant insertion et afficher une erreur explicite
- * plutôt que de laisser échouer la contrainte SQL brutalement.
- */
 final class AvisRepository implements RepositoryInterface
 {
-    private const COLONNES = 'id, commande_id, client_id, note, commentaire, date_avis';
+    private const COLONNES = 'id, produit_id, client_id, note, commentaire, date_avis';
 
     /**
      * Recherche un avis par son identifiant.
@@ -55,27 +48,47 @@ final class AvisRepository implements RepositoryInterface
     }
 
     /**
-     * Retourne l'avis associé à une commande donnée, relation 1-1 garantie
-     * par une contrainte UNIQUE en base.
+     * Retourne tous les avis déposés sur un produit donné — utilisée pour
+     * afficher les avis clients sur la fiche produit du catalogue.
      *
-     * @param int $commandeId Identifiant de la commande recherchée
-     * @return Avis|null L'avis trouvé, ou null si la commande n'en a pas encore
+     * @param int $produitId Identifiant du produit recherché
+     * @return Avis[] Avis déposés sur ce produit, les plus récents en premier
      */
-    public function trouverParCommande(int $commandeId): ?Avis
+    public function trouverParProduit(int $produitId): array
     {
         $requete = Database::getConnexion()->prepare(
-            'SELECT ' . self::COLONNES . ' FROM avis WHERE commande_id = :commandeId'
+            'SELECT ' . self::COLONNES . ' FROM avis WHERE produit_id = :produitId ORDER BY date_avis DESC'
         );
-        $requete->execute(['commandeId' => $commandeId]);
+        $requete->execute(['produitId' => $produitId]);
 
-        $ligne = $requete->fetch();
-
-        return $ligne !== false ? Avis::depuisLigne($ligne) : null;
+        return array_map(
+            fn(array $ligne) => Avis::depuisLigne($ligne),
+            $requete->fetchAll()
+        );
     }
 
     /**
-     * Retourne les avis filtrés par note exacte — utilisée pour le filtrage
-     * par note côté administrateur.
+     * Calcule la note moyenne d'un produit, arrondie à une décimale.
+     * Retourne null si le produit n'a encore reçu aucun avis, pour
+     * distinguer ce cas d'une note de 0.
+     *
+     * @param int $produitId Identifiant du produit recherché
+     * @return float|null Note moyenne sur 5, ou null si aucun avis
+     */
+    public function noteMoyenne(int $produitId): ?float
+    {
+        $requete = Database::getConnexion()->prepare(
+            'SELECT ROUND(AVG(note)::numeric, 1) FROM avis WHERE produit_id = :produitId'
+        );
+        $requete->execute(['produitId' => $produitId]);
+
+        $moyenne = $requete->fetchColumn();
+
+        return $moyenne !== null ? (float) $moyenne : null;
+    }
+
+    /**
+     * Retourne les avis ayant une note exacte donnée.
      *
      * @param int $note Note recherchée (entre 1 et 5)
      * @return Avis[] Avis correspondant à cette note
@@ -94,19 +107,44 @@ final class AvisRepository implements RepositoryInterface
     }
 
     /**
-     * Vérifie si une commande possède déjà un avis, pour faire respecter
-     * la règle métier "un seul avis par commande" avant toute tentative
-     * d'insertion.
+     * Vérifie si un client a déjà déposé un avis sur un produit donné,
+     * pour faire respecter la règle métier "un seul avis par produit et
+     * par client" avant toute tentative d'insertion.
      *
-     * @param int $commandeId Identifiant de la commande à vérifier
-     * @return bool true si un avis existe déjà pour cette commande
+     * @param int $clientId  Identifiant du client à vérifier
+     * @param int $produitId Identifiant du produit à vérifier
+     * @return bool true si un avis existe déjà pour ce couple client/produit
      */
-    public function existeParCommande(int $commandeId): bool
+    public function existeParClientEtProduit(int $clientId, int $produitId): bool
     {
         $requete = Database::getConnexion()->prepare(
-            'SELECT COUNT(*) FROM avis WHERE commande_id = :commandeId'
+            'SELECT COUNT(*) FROM avis WHERE client_id = :clientId AND produit_id = :produitId'
         );
-        $requete->execute(['commandeId' => $commandeId]);
+        $requete->execute(['clientId' => $clientId, 'produitId' => $produitId]);
+
+        return ((int) $requete->fetchColumn()) > 0;
+    }
+
+    /**
+     * Vérifie qu'un client a bien commandé un produit donné, dans une
+     * commande déjà au statut RETIREE — condition requise avant de
+     * pouvoir déposer un avis. La jointure passe par ligne_commandes,
+     * puisque avis ne référence plus directement une commande précise.
+     *
+     * @param int $clientId  Identifiant du client à vérifier
+     * @param int $produitId Identifiant du produit à vérifier
+     * @return bool true si au moins une commande retirée contient ce produit
+     */
+    public function aCommandeEtRetireProduit(int $clientId, int $produitId): bool
+    {
+        $requete = Database::getConnexion()->prepare(
+            "SELECT COUNT(*) FROM ligne_commandes lc
+             JOIN commandes c ON lc.commande_id = c.id
+             WHERE c.client_id = :clientId
+               AND lc.produit_id = :produitId
+               AND c.statut = 'RETIREE'"
+        );
+        $requete->execute(['clientId' => $clientId, 'produitId' => $produitId]);
 
         return ((int) $requete->fetchColumn()) > 0;
     }
@@ -120,12 +158,12 @@ final class AvisRepository implements RepositoryInterface
     public function creer(object $entite): Avis
     {
         $requete = Database::getConnexion()->prepare(
-            'INSERT INTO avis (commande_id, client_id, note, commentaire, date_avis)
-             VALUES (:commandeId, :clientId, :note, :commentaire, :dateAvis)
+            'INSERT INTO avis (produit_id, client_id, note, commentaire, date_avis)
+             VALUES (:produitId, :clientId, :note, :commentaire, :dateAvis)
              RETURNING id'
         );
         $requete->execute([
-            'commandeId' => $entite->getCommandeId(),
+            'produitId' => $entite->getProduitId(),
             'clientId' => $entite->getClientId(),
             'note' => $entite->getNote(),
             'commentaire' => $entite->getCommentaire(),
@@ -136,7 +174,7 @@ final class AvisRepository implements RepositoryInterface
 
         return new Avis(
             $id,
-            $entite->getCommandeId(),
+            $entite->getProduitId(),
             $entite->getClientId(),
             $entite->getNote(),
             $entite->getCommentaire(),
@@ -145,8 +183,8 @@ final class AvisRepository implements RepositoryInterface
     }
 
     /**
-     * Met à jour un avis existant. Le sujet ne prévoit pas d'édition d'avis
-     * par le client — fournie pour respecter le contrat
+     * Met à jour un avis existant. Le sujet ne prévoit pas d'édition
+     * d'avis par le client — fournie pour respecter le contrat
      * RepositoryInterface, non utilisée par le service à ce stade.
      *
      * @param Avis $entite Avis contenant les valeurs à jour

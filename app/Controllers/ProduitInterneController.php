@@ -60,8 +60,6 @@ final class ProduitInterneController extends ControllerInterneBase
 
     public function ajouter(): void
     {
-        $this->exigerUtilisateurConnecte();
-
         $this->produitService->ajouterProduit(
             libelle: $_POST['libelle'] ?? '',
             description: $_POST['description'] ?: null,
@@ -69,7 +67,7 @@ final class ProduitInterneController extends ControllerInterneBase
             quantiteStock: (int) ($_POST['quantite_stock'] ?? 0),
             seuilAlerte: (int) ($_POST['seuil_alerte'] ?? 5),
             categorieId: (int) ($_POST['categorie_id'] ?? 0),
-            image: $_POST['image'] ?: null,
+            image: $this->uploaderImageSiPresente('produits'),
         );
 
         Response::redirect('/gerant/produits');
@@ -87,15 +85,13 @@ final class ProduitInterneController extends ControllerInterneBase
 
     public function modifier(string $id): void
     {
-        $this->exigerUtilisateurConnecte();
-
         $this->produitService->modifierProduit(
             id: (int) $id,
             libelle: $_POST['libelle'] ?? '',
             description: $_POST['description'] ?: null,
             prix: (float) ($_POST['prix'] ?? 0),
             categorieId: (int) ($_POST['categorie_id'] ?? 0),
-            image: $_POST['image'] ?: null,
+            image: $this->uploaderImageSiPresente('produits'),
         );
 
         Response::redirect('/gerant/produits');
@@ -127,4 +123,14 @@ final class ProduitInterneController extends ControllerInterneBase
 
         Response::redirect('/gerant/produits/stock');
     }
+
+    private function uploaderImageSiPresente(string $dossier): ?string
+    {
+        if (empty($_FILES['image']['name'])) {
+            return null;
+        }
+
+        return \Core\CloudinaryService::uploader($_FILES['image'], $dossier);
+    }
+
 }

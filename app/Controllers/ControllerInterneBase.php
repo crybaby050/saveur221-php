@@ -78,6 +78,9 @@ abstract class ControllerInterneBase
      */
     protected function afficherVueInterne(string $vue, array $donnees = []): void
     {
-        View::render($vue, $donnees, layout: 'layout/interne.layout');
+        View::render($vue, [
+            ...$donnees,
+            'utilisateur' => $this->authService->utilisateurConnecte(),
+        ], layout: 'layout/interne.layout');
     }
 }

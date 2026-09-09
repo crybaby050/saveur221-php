@@ -109,7 +109,7 @@ $parserTopProduit = static function (string $libelle): array {
                                 </span>
                             </div>
                             
-                                href="/gerant/commandes/<?= $commande->getId() ?>"
+                            <a href="/gerant/commandes/<?= $commande->getId() ?>"
                                 aria-label="Traiter la commande <?= View::e($commande->getNumeroCommande()) ?>"
                                 class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-creme text-charbon transition-colors hover:bg-ivoire"
                             >
@@ -125,27 +125,25 @@ $parserTopProduit = static function (string $libelle): array {
 
     </div>
 
-    <!-- Top 3 produits, une carte par produit -->
+    <!-- Top 3 produits, une carte premium par produit -->
     <?php if (!empty($statistiques->top3Produits)): ?>
         <div>
             <p class="mb-3 text-sm font-medium text-charbon">Top 3 produits les plus vendus</p>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <?php foreach ($statistiques->top3Produits as $index => $libelle): ?>
-                    <?php $produit = $parserTopProduit($libelle); ?>
-                    <div class="relative rounded-xl border border-creme bg-white p-5 shadow-sm">
-                        <span class="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-bordeaux text-xs font-medium text-ivoire">
-                            <?= $index + 1 ?>
-                        </span>
-                        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-or/10 text-or">
-                            <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-                                <?= icone_stat('trophee') ?>
-                            </svg>
-                        </div>
-                        <p class="pr-8 text-sm font-medium text-charbon"><?= View::e($produit['nom']) ?></p>
-                        <?php if ($produit['quantite'] !== null): ?>
-                            <p class="mt-0.5 text-xs text-gris-chaud"><?= View::e($produit['quantite']) ?></p>
-                        <?php endif; ?>
-                    </div>
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <?php foreach ($statistiques->top3Produits as $index => $produitTop): ?>
+                    <?php
+                    $donnees = [
+                        'image' => $produitTop['image'],
+                        'nom' => $produitTop['nom'],
+                        'description' => $produitTop['description'],
+                        'ventes' => $produitTop['quantite'],
+                        'rang' => $index + 1,
+                        'note' => $produitTop['note'],
+                        'croissance' => null,
+                    ];
+
+                    include __DIR__ . '/../../partials/carte-produit-top.php';
+                    ?>
                 <?php endforeach; ?>
             </div>
         </div>

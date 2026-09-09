@@ -57,12 +57,12 @@ final class CategorieInterneController extends ControllerInterneBase
      */
     public function ajouter(): void
     {
-        $this->exigerUtilisateurConnecte();
+        $image = $this->uploaderImageSiPresente('categories');
 
         $this->categorieService->ajouterCategorie(
             nom: $_POST['nom'] ?? '',
             description: $_POST['description'] ?: null,
-            image: $_POST['image'] ?: null,
+            image: $image,
             couleur: $_POST['couleur'] ?: null,
         );
 
@@ -90,13 +90,13 @@ final class CategorieInterneController extends ControllerInterneBase
      */
     public function modifier(string $id): void
     {
-        $this->exigerUtilisateurConnecte();
+        $image = $this->uploaderImageSiPresente('categories');
 
         $this->categorieService->modifierCategorie(
             id: (int) $id,
             nom: $_POST['nom'] ?? '',
             description: $_POST['description'] ?: null,
-            image: $_POST['image'] ?: null,
+            image: $image,
             couleur: $_POST['couleur'] ?: null,
         );
 
@@ -125,4 +125,23 @@ final class CategorieInterneController extends ControllerInterneBase
             ]);
         }
     }
+
+    /**
+     * Envoie l'image soumise dans le champ "image" du formulaire vers
+     * Cloudinary, si un fichier a effectivement été sélectionné. Retourne
+     * null si aucun fichier n'a été fourni — le service se chargera alors
+     * d'appliquer l'image par défaut, comme prévu dans CategorieService.
+     *
+     * @param string $dossier Sous-dossier Cloudinary de destination
+     * @return string|null URL de l'image uploadée, ou null si aucune fournie
+     */
+    private function uploaderImageSiPresente(string $dossier): ?string
+    {
+        if (empty($_FILES['image']['name'])) {
+            return null;
+        }
+    
+        return \Core\CloudinaryService::uploader($_FILES['image'], $dossier);
+    }
+
 }
