@@ -160,6 +160,14 @@ function badge_stock(\App\Models\Produit $produit): array
     function ouvrirTiroirStock() {
         document.getElementById('tiroir-stock').classList.add('tiroir-ouvert');
     }
+                            
+        function ouvrirTiroirStock() {
+        document.getElementById('tiroir-stock').classList.add('tiroir-ouvert');
+    }
+                            
+    if (new URLSearchParams(window.location.search).get('stock') === '1') {
+        ouvrirTiroirStock();
+    }
 </script>
 
 <div class="space-y-6">

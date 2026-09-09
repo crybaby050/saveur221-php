@@ -22,16 +22,16 @@ final class ProduitInterneController extends ControllerInterneBase
     public function index(): void
     {
         $this->exigerUtilisateurConnecte();
-    
+
         $motCle = $_GET['recherche'] ?? null;
         $categorieId = isset($_GET['categorie']) ? (int) $_GET['categorie'] : null;
-    
+
         $produits = match (true) {
             $motCle !== null => $this->produitService->rechercherProduit($motCle),
             $categorieId !== null => $this->produitService->filtrerParCategorie($categorieId),
             default => $this->produitService->listerProduits(),
         };
-    
+
         $this->afficherVueInterne('gerant/produits/index', [
             'produits' => $produits,
             'categories' => $this->categorieService->listerCategories(),
@@ -117,16 +117,16 @@ final class ProduitInterneController extends ControllerInterneBase
 
         $this->produitService->approvisionner((int) $id, (int) ($_POST['quantite'] ?? 0));
 
-        Response::redirect('/gerant/produits/stock');
+        Response::redirect('/gerant/produits?stock=1');
     }
 
     public function definirSeuilAlerte(string $id): void
     {
         $this->exigerUtilisateurConnecte();
-
+    
         $this->produitService->definirSeuilAlerte((int) $id, (int) ($_POST['seuil'] ?? 0));
-
-        Response::redirect('/gerant/produits/stock');
+    
+        Response::redirect('/gerant/produits?stock=1');
     }
 
     private function uploaderImageSiPresente(string $dossier): ?string
