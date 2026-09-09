@@ -138,8 +138,8 @@ final class ProduitRepository implements RepositoryInterface
     public function creer(object $entite): Produit
     {
         $requete = Database::getConnexion()->prepare(
-            'INSERT INTO produits (libelle, description, prix, quantite_stock, seuil_alerte, disponible, categorie_id)
-             VALUES (:libelle, :description, :prix, :quantiteStock, :seuilAlerte, :disponible, :categorieId)
+            'INSERT INTO produits (libelle, description, prix, quantite_stock, seuil_alerte, disponible, image, categorie_id)
+             VALUES (:libelle, :description, :prix, :quantiteStock, :seuilAlerte, :disponible, :image, :categorieId)
              RETURNING id'
         );
         $requete->execute([
@@ -149,11 +149,12 @@ final class ProduitRepository implements RepositoryInterface
             'quantiteStock' => $entite->getQuantiteStock(),
             'seuilAlerte' => $entite->getSeuilAlerte(),
             'disponible' => $entite->isDisponible(),
+            'image' => $entite->getImage(),
             'categorieId' => $entite->getCategorieId(),
         ]);
-
+    
         $id = (int) $requete->fetchColumn();
-
+    
         return new Produit(
             $id,
             $entite->getLibelle(),
@@ -162,7 +163,7 @@ final class ProduitRepository implements RepositoryInterface
             $entite->getQuantiteStock(),
             $entite->getSeuilAlerte(),
             $entite->isDisponible(),
-            null,
+            $entite->getImage(),
             $entite->getCategorieId(),
         );
     }

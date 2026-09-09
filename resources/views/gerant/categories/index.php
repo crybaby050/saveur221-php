@@ -113,7 +113,7 @@ $section = 'categories';
 
         <div class="flex items-center gap-3">
             <?php include __DIR__ . '/../../partials/bascule-affichage.php'; ?>
-            
+
             <button type="button" onclick="ouvrirTiroirCategorieAjout()"
                 class="inline-flex items-center justify-center gap-2 rounded-md bg-bordeaux px-4 py-2.5 text-sm font-medium text-ivoire transition-colors hover:bg-bordeaux-sombre">
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
@@ -164,8 +164,10 @@ $section = 'categories';
                                 class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
                                 Modifier
                             </button>
-                            <form method="post" action="/gerant/categories/<?= $categorie->getId() ?>/supprimer" class="flex-1" onsubmit="return confirm('Supprimer cette catégorie ?');">
-                                <button type="submit" class="w-full rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
+                            <form method="post" action="/gerant/categories/<?= $categorie->getId() ?>/supprimer" class="flex-1">
+                                <button type="button"
+                                    onclick="demanderSuppression(this.closest('form'), 'Supprimer « <?= View::e($categorie->getNom()) ?> » ?')"
+                                    class="w-full rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
                                     Supprimer
                                 </button>
                             </form>
@@ -207,8 +209,10 @@ $section = 'categories';
                                         class="flex-1 rounded-md border border-creme px-3 py-1.5 text-center text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
                                         Modifier
                                     </button>
-                                    <form method="post" action="/gerant/categories/<?= $categorie->getId() ?>/supprimer" onsubmit="return confirm('Supprimer cette catégorie ?');">
-                                        <button type="submit" class="rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
+                                    <form method="post" action="/gerant/categories/<?= $categorie->getId() ?>/supprimer">
+                                        <button type="button"
+                                            onclick="demanderSuppression(this.closest('form'), 'Supprimer « <?= View::e($categorie->getNom()) ?> » ?')"
+                                            class="rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
                                             Supprimer
                                         </button>
                                     </form>

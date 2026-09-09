@@ -59,20 +59,21 @@ final class ProduitInterneController extends ControllerInterneBase
     }
 
     public function ajouter(): void
-    {
-        $this->produitService->ajouterProduit(
-            libelle: $_POST['libelle'] ?? '',
-            description: $_POST['description'] ?: null,
-            prix: (float) ($_POST['prix'] ?? 0),
-            quantiteStock: (int) ($_POST['quantite_stock'] ?? 0),
-            seuilAlerte: (int) ($_POST['seuil_alerte'] ?? 5),
-            categorieId: (int) ($_POST['categorie_id'] ?? 0),
-            image: $this->uploaderImageSiPresente('produits'),
-        );
+{
+    $this->exigerUtilisateurConnecte();
 
-        Response::redirect('/gerant/produits');
-    }
+    $this->produitService->ajouterProduit(
+        libelle: $_POST['libelle'] ?? '',
+        description: $_POST['description'] ?: null,
+        prix: (float) ($_POST['prix'] ?? 0),
+        quantiteStock: (int) ($_POST['quantite_stock'] ?? 0),
+        seuilAlerte: (int) ($_POST['seuil_alerte'] ?? 5),
+        categorieId: (int) ($_POST['categorie_id'] ?? 0),
+        image: $this->uploaderImageSiPresente('produits'),
+    );
 
+    Response::redirect('/gerant/produits');
+}
     public function afficherModification(string $id): void
     {
         $this->exigerUtilisateurConnecte();
@@ -84,18 +85,20 @@ final class ProduitInterneController extends ControllerInterneBase
     }
 
     public function modifier(string $id): void
-    {
-        $this->produitService->modifierProduit(
-            id: (int) $id,
-            libelle: $_POST['libelle'] ?? '',
-            description: $_POST['description'] ?: null,
-            prix: (float) ($_POST['prix'] ?? 0),
-            categorieId: (int) ($_POST['categorie_id'] ?? 0),
-            image: $this->uploaderImageSiPresente('produits'),
-        );
+{
+    $this->exigerUtilisateurConnecte();
 
-        Response::redirect('/gerant/produits');
-    }
+    $this->produitService->modifierProduit(
+        id: (int) $id,
+        libelle: $_POST['libelle'] ?? '',
+        description: $_POST['description'] ?: null,
+        prix: (float) ($_POST['prix'] ?? 0),
+        categorieId: (int) ($_POST['categorie_id'] ?? 0),
+        image: $this->uploaderImageSiPresente('produits'),
+    );
+
+    Response::redirect('/gerant/produits');
+}
 
     public function supprimer(string $id): void
     {

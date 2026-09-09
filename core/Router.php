@@ -67,36 +67,37 @@ final class Router
      * les paramètres extraits de l'URL.
      */
     public function dispatcher(string $methode, string $uri): void
-    {
-        $uri = parse_url($uri, PHP_URL_PATH) ?? '/';
-        $uri = rtrim($uri, '/');
-        $uri = $uri === '' ? '/' : $uri;
+{
+    $uri = parse_url($uri, PHP_URL_PATH) ?? '/';
+    $uri = rtrim($uri, '/');
+    $uri = $uri === '' ? '/' : $uri;
 
-        foreach ($this->routes as $route) {
-            if ($route['methode'] !== $methode) {
-                continue;
-            }
-
-            $motif = $this->compilerChemin($route['chemin']);
-
-            if (preg_match($motif, $uri, $correspondances) === 1) {
-                $parametres = array_filter(
-                    $correspondances,
-                    fn(string $cle) => !is_int($cle),
-                    ARRAY_FILTER_USE_KEY
-                );
-
-                [$classeControleur, $methodeAction] = $route['action'];
-                $controleur = $this->container->get($classeControleur);
-
-                $controleur->{$methodeAction}(...array_values($parametres));
-
-                return;
-            }
+    foreach ($this->routes as $route) {
+        if ($route['methode'] !== $methode) {
+            continue;
         }
 
-        $this->routeIntrouvable($methode, $uri);
+        $motif = $this->compilerChemin($route['chemin']);
+
+        if (preg_match($motif, $uri, $correspondances) === 1) {
+            $parametres = [];
+            foreach ($correspondances as $cle => $valeur) {
+                if (is_string($cle)) {
+                    $parametres[$cle] = $valeur;
+                }
+            }
+
+            [$classeControleur, $methodeAction] = $route['action'];
+            $controleur = $this->container->get($classeControleur);
+
+            $controleur->{$methodeAction}(...array_values($parametres));
+
+            return;
+        }
     }
+
+    $this->routeIntrouvable($methode, $uri);
+}
 
     /*
      * Aucune route ne correspond : renvoie une 404 générique. Le format
