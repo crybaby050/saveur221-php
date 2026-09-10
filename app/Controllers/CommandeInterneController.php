@@ -71,30 +71,44 @@ final class CommandeInterneController extends ControllerInterneBase
     }
 
     /**
-     * Affiche le formulaire de création d'une commande au comptoir :
-     * recherche d'un client par téléphone, puis sélection des produits.
+     * Affiche le formulaire (wizard) de création d'une commande au
+     * comptoir. La recherche de client se fait désormais en JS via
+     * rechercherClientsJson() ; cette action se contente de fournir le
+     * catalogue de produits nécessaire à l'étape 2.
      */
     public function afficherCreation(): void
     {
         $this->exigerUtilisateurConnecte();
 
-        $telephone = $_GET['telephone'] ?? null;
-        $clientId = isset($_GET['client_id']) ? (int) $_GET['client_id'] : null;
+        $this->afficherVueInterne('gerant/commandes/nouvelle', [
+            'produits' => $this->produitService->listerProduits(),
+        ]);
+    }
 
-        $clientsTrouves = ($telephone !== null && $telephone !== '')
+    /**
+     * Recherche des clients par fragment de téléphone, au format JSON —
+     * consommée par le JS du formulaire de création de commande pour
+     * afficher des suggestions en direct.
+     */
+    public function rechercherClientsJson(): void
+    {
+        $this->exigerUtilisateurConnecte();
+
+        $telephone = trim($_GET['telephone'] ?? '');
+
+        $clients = $telephone !== ''
             ? $this->clientService->rechercherParTelephone($telephone)
             : [];
 
-        $clientSelectionne = $clientId !== null
-            ? $this->clientService->consulterClient($clientId)
-            : null;
-
-        $this->afficherVueInterne('gerant/commandes/nouvelle', [
-            'telephone' => $telephone,
-            'clientsTrouves' => $clientsTrouves,
-            'clientSelectionne' => $clientSelectionne,
-            'produits' => $this->produitService->listerProduits(),
-        ]);
+        Response::json(array_map(
+            fn($client) => [
+                'id' => $client->getId(),
+                'nom' => $client->getNom(),
+                'prenom' => $client->getPrenom(),
+                'telephone' => $client->getTelephone(),
+            ],
+            $clients
+        ));
     }
 
     /**
@@ -121,9 +135,6 @@ final class CommandeInterneController extends ControllerInterneBase
             Response::redirect("/gerant/commandes/{$commande->getId()}");
         } catch (CommandeInvalideException|ProduitInexistantException|StockInsuffisantException $exception) {
             $this->afficherVueInterne('gerant/commandes/nouvelle', [
-                'telephone' => null,
-                'clientsTrouves' => [],
-                'clientSelectionne' => $clientId > 0 ? $this->clientService->consulterClient($clientId) : null,
                 'produits' => $this->produitService->listerProduits(),
                 'erreur' => $exception->getMessage(),
             ]);
