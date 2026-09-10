@@ -14,12 +14,6 @@ use App\Repositories\CommandeRepository;
 use App\Repositories\PaiementRepository;
 use DateTimeImmutable;
 
-/*
- * Applique les règles métier liées aux paiements. Ne dépend pas
- * directement de FactureRepository : la seule dépendance transverse est
- * RecuService, chargé de générer systématiquement un reçu après chaque
- * paiement, qu'il solde totalement la commande ou non.
- */
 final class PaiementService
 {
     public function __construct(
@@ -30,14 +24,50 @@ final class PaiementService
     }
 
     /**
-     * Retourne l'historique des paiements d'une commande.
+     * Retourne les paiements d'une commande.
      *
-     * @param int $commandeId Identifiant de la commande recherchée
-     * @return Paiement[] Paiements de cette commande
+     * @param int $commandeId Identifiant de la commande
+     * @return array Liste des paiements
      */
     public function consulterParCommande(int $commandeId): array
     {
         return $this->paiementRepository->trouverParCommande($commandeId);
+    }
+
+    /**
+     * Retourne toutes les commandes avec leurs informations de paiement.
+     *
+     * @return array Liste des commandes et de leurs soldes
+     */
+    public function consulterToutesCommandesAvecPaiements(): array
+    {
+        $commandes = $this->commandeRepository->trouverTous();
+
+        $resultat = [];
+
+        foreach ($commandes as $commande) {
+            $montantTotal = $commande->getMontantTotal();
+            $montantPaye = $this->paiementRepository->sommePaiements($commande->getId());
+            $montantRestant = max(0, $montantTotal - $montantPaye);
+
+            if ($montantPaye <= 0) {
+                $statutPaiement = 'IMPAYEE';
+            } elseif ($montantRestant > 0) {
+                $statutPaiement = 'PARTIELLE';
+            } else {
+                $statutPaiement = 'PAYEE';
+            }
+
+            $resultat[] = [
+                'commande' => $commande,
+                'montantTotal' => $montantTotal,
+                'montantPaye' => $montantPaye,
+                'montantRestant' => $montantRestant,
+                'statutPaiement' => $statutPaiement,
+            ];
+        }
+
+        return $resultat;
     }
 
     /**
@@ -51,11 +81,10 @@ final class PaiementService
         return $this->commandeRepository->trouverParId($commandeId);
     }
 
-
     /**
-     * Retourne les commandes non entièrement réglées.
+     * Retourne les commandes impayées ou partiellement payées.
      *
-     * @return Commande[] Commandes impayées ou partiellement payées
+     * @return array Liste des commandes concernées
      */
     public function consulterCommandesImpayees(): array
     {
@@ -63,14 +92,11 @@ final class PaiementService
     }
 
     /**
-     * Enregistre un paiement pour une commande après validation du montant.
+     * Enregistre un paiement pour une commande.
      *
-     * @param int   $commandeId Identifiant de la commande concernée
-     * @param float $montant    Montant du paiement à enregistrer
-     * @return Paiement Le paiement créé
-     *
-     * @throws CommandeInexistanteException si la commande n'existe pas
-     * @throws MontantPaiementInvalideException si le montant est invalide
+     * @param int $commandeId Identifiant de la commande
+     * @param float $montant Montant du paiement
+     * @return Paiement Paiement créé
      */
     public function enregistrerPaiement(int $commandeId, float $montant): Paiement
     {
@@ -82,20 +108,23 @@ final class PaiementService
             );
         }
 
-        $totalDejaPaye = $this->paiementRepository->sommePaiements($commandeId);
-        $montantRestant = $commande->getMontantTotal() - $totalDejaPaye;
-
         if ($montant <= 0) {
             throw new MontantPaiementInvalideException(
-                "Veuillez saisir un montant de paiement valide."
+                'Veuillez saisir un montant de paiement valide.'
             );
         }
 
+        $totalDejaPaye = $this->paiementRepository->sommePaiements($commandeId);
+
+        $montantRestant = $commande->getMontantTotal() - $totalDejaPaye;
+
         if ($montant > $montantRestant) {
             throw new MontantPaiementInvalideException(
-                "Le montant saisi (" . number_format($montant, 0, ',', ' ') .
-                " FCFA) dépasse le reste à payer (" .
-                number_format($montantRestant, 0, ',', ' ') . " FCFA)."
+                'Le montant saisi (' .
+                number_format($montant, 0, ',', ' ') .
+                ' FCFA) dépasse le solde restant (' .
+                number_format($montantRestant, 0, ',', ' ') .
+                ' FCFA).'
             );
         }
 
@@ -128,6 +157,4 @@ final class PaiementService
 
         return $paiement;
     }
-
-
 }
