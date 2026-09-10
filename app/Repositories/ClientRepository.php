@@ -129,6 +129,27 @@ final class ClientRepository implements RepositoryInterface
         );
     }
 
+        /**
+     * Recherche les clients dont le numéro de téléphone contient le
+     * fragment fourni — utilisée pour retrouver un client au comptoir,
+     * sans exiger une saisie exacte et complète du numéro.
+     *
+     * @param string $telephone Fragment de numéro recherché
+     * @return Client[] Clients correspondants
+     */
+    public function rechercherParTelephone(string $telephone): array
+    {
+        $requete = Database::getConnexion()->prepare(
+            'SELECT ' . self::COLONNES . ' FROM clients WHERE telephone ILIKE :telephone ORDER BY nom, prenom'
+        );
+        $requete->execute(['telephone' => '%' . $telephone . '%']);
+
+        return array_map(
+            fn(array $ligne) => Client::depuisLigne($ligne),
+            $requete->fetchAll()
+        );
+    }
+
     /**
      * Met à jour les informations de profil d'un client existant, y
      * compris son mot de passe s'il a été changé.

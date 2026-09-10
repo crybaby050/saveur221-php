@@ -52,6 +52,8 @@ $router->post('/gerant/produits/{id}/seuil-alerte', [ProduitInterneController::c
 
 /* Commandes (Gérant, Administrateur) */
 $router->get('/gerant/commandes', [CommandeInterneController::class, 'index']);
+$router->get('/gerant/commandes/nouvelle', [CommandeInterneController::class, 'afficherCreation']);
+$router->post('/gerant/commandes/creer', [CommandeInterneController::class, 'creer']);
 $router->get('/gerant/commandes/rechercher', [CommandeInterneController::class, 'rechercher']);
 $router->get('/gerant/commandes/{id}', [CommandeInterneController::class, 'detail']);
 $router->post('/gerant/commandes/{id}/statut', [CommandeInterneController::class, 'changerStatut']);

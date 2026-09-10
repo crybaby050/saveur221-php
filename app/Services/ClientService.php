@@ -57,6 +57,18 @@ final class ClientService
         return $this->clientRepository->rechercherParNom($motCle);
     }
 
+        /**
+     * Recherche les clients dont le numéro de téléphone contient le
+     * fragment fourni.
+     *
+     * @param string $telephone Fragment de numéro recherché
+     * @return Client[] Clients correspondants
+     */
+    public function rechercherParTelephone(string $telephone): array
+    {
+        return $this->clientRepository->rechercherParTelephone($telephone);
+    }
+
     /**
      * Inscrit un nouveau client, après avoir vérifié l'unicité de son
      * email et la longueur minimale de son mot de passe. Le mot de passe

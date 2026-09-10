@@ -6,22 +6,27 @@ namespace App\Controllers;
 
 use App\Enums\StatutCommande;
 use App\Exceptions\CommandeInexistanteException;
+use App\Exceptions\CommandeInvalideException;
+use App\Exceptions\ProduitInexistantException;
+use App\Exceptions\StockInsuffisantException;
 use App\Exceptions\TransitionStatutInvalideException;
 use App\Services\AuthService;
+use App\Services\ClientService;
 use App\Services\CommandeService;
+use App\Services\ProduitService;
 use Core\Response;
-use Core\View;
 
 /*
  * Gère les commandes depuis l'espace interne (Gérant/Admin) : consultation,
- * recherche, filtrage, changement de statut, annulation. Le passage de
- * commande côté client relève de CommandeClientController, aux règles
- * différentes.
+ * recherche, filtrage, changement de statut, annulation, et création d'une
+ * commande au comptoir pour un client identifié par téléphone.
  */
 final class CommandeInterneController extends ControllerInterneBase
 {
     public function __construct(
         private readonly CommandeService $commandeService,
+        private readonly ClientService $clientService,
+        private readonly ProduitService $produitService,
         AuthService $authService,
     ) {
         parent::__construct($authService);
@@ -39,7 +44,7 @@ final class CommandeInterneController extends ControllerInterneBase
             ? $this->commandeService->filtrerParStatut(StatutCommande::from($statutParam))
             : $this->commandeService->listerCommandes();
 
-        View::render('gerant/commandes/index', ['commandes' => $commandes]);
+        $this->afficherVueInterne('gerant/commandes/index', ['commandes' => $commandes]);
     }
 
     /**
@@ -52,10 +57,74 @@ final class CommandeInterneController extends ControllerInterneBase
         try {
             $commande = $this->commandeService->rechercherParNumero($_GET['numero'] ?? '');
 
-            View::render('gerant/commandes/detail', ['commande' => $commande]);
+            $this->afficherVueInterne('gerant/commandes/detail', [
+                'commande' => $commande,
+                'client' => $this->clientService->consulterClient($commande->getClientId()),
+                'lignesEnrichies' => $this->enrichirLignes($commande),
+            ]);
         } catch (CommandeInexistanteException $exception) {
-            View::render('gerant/commandes/index', [
+            $this->afficherVueInterne('gerant/commandes/index', [
                 'commandes' => $this->commandeService->listerCommandes(),
+                'erreur' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Affiche le formulaire de création d'une commande au comptoir :
+     * recherche d'un client par téléphone, puis sélection des produits.
+     */
+    public function afficherCreation(): void
+    {
+        $this->exigerUtilisateurConnecte();
+
+        $telephone = $_GET['telephone'] ?? null;
+        $clientId = isset($_GET['client_id']) ? (int) $_GET['client_id'] : null;
+
+        $clientsTrouves = ($telephone !== null && $telephone !== '')
+            ? $this->clientService->rechercherParTelephone($telephone)
+            : [];
+
+        $clientSelectionne = $clientId !== null
+            ? $this->clientService->consulterClient($clientId)
+            : null;
+
+        $this->afficherVueInterne('gerant/commandes/nouvelle', [
+            'telephone' => $telephone,
+            'clientsTrouves' => $clientsTrouves,
+            'clientSelectionne' => $clientSelectionne,
+            'produits' => $this->produitService->listerProduits(),
+        ]);
+    }
+
+    /**
+     * Traite la création d'une commande au comptoir pour un client donné.
+     */
+    public function creer(): void
+    {
+        $this->exigerUtilisateurConnecte();
+
+        $clientId = (int) ($_POST['client_id'] ?? 0);
+        $statutInitial = StatutCommande::from($_POST['statut_initial'] ?? '');
+
+        $lignes = [];
+        foreach (($_POST['quantite'] ?? []) as $produitId => $quantite) {
+            $quantite = (int) $quantite;
+            if ($quantite > 0) {
+                $lignes[(int) $produitId] = $quantite;
+            }
+        }
+
+        try {
+            $commande = $this->commandeService->creerCommandeSurPlace($clientId, $lignes, $statutInitial);
+
+            Response::redirect("/gerant/commandes/{$commande->getId()}");
+        } catch (CommandeInvalideException|ProduitInexistantException|StockInsuffisantException $exception) {
+            $this->afficherVueInterne('gerant/commandes/nouvelle', [
+                'telephone' => null,
+                'clientsTrouves' => [],
+                'clientSelectionne' => $clientId > 0 ? $this->clientService->consulterClient($clientId) : null,
+                'produits' => $this->produitService->listerProduits(),
                 'erreur' => $exception->getMessage(),
             ]);
         }
@@ -70,8 +139,12 @@ final class CommandeInterneController extends ControllerInterneBase
     {
         $this->exigerUtilisateurConnecte();
 
-        View::render('gerant/commandes/detail', [
-            'commande' => $this->commandeService->consulterCommande((int) $id),
+        $commande = $this->commandeService->consulterCommande((int) $id);
+
+        $this->afficherVueInterne('gerant/commandes/detail', [
+            'commande' => $commande,
+            'client' => $commande !== null ? $this->clientService->consulterClient($commande->getClientId()) : null,
+            'lignesEnrichies' => $commande !== null ? $this->enrichirLignes($commande) : [],
         ]);
     }
 
@@ -92,8 +165,12 @@ final class CommandeInterneController extends ControllerInterneBase
 
             Response::redirect("/gerant/commandes/{$id}");
         } catch (TransitionStatutInvalideException $exception) {
-            View::render('gerant/commandes/detail', [
-                'commande' => $this->commandeService->consulterCommande((int) $id),
+            $commande = $this->commandeService->consulterCommande((int) $id);
+
+            $this->afficherVueInterne('gerant/commandes/detail', [
+                'commande' => $commande,
+                'client' => $commande !== null ? $this->clientService->consulterClient($commande->getClientId()) : null,
+                'lignesEnrichies' => $commande !== null ? $this->enrichirLignes($commande) : [],
                 'erreur' => $exception->getMessage(),
             ]);
         }
@@ -112,5 +189,22 @@ final class CommandeInterneController extends ControllerInterneBase
         $this->commandeService->changerStatut((int) $id, StatutCommande::ANNULEE);
 
         Response::redirect("/gerant/commandes/{$id}");
+    }
+
+    /**
+     * Associe à chaque ligne de la commande le produit correspondant, pour
+     * que la vue n'ait pas à faire de requêtes supplémentaires.
+     *
+     * @return array<int, array{ligne: \App\Models\LigneCommande, produit: ?\App\Models\Produit}>
+     */
+    private function enrichirLignes(\App\Models\Commande $commande): array
+    {
+        return array_map(
+            fn($ligne) => [
+                'ligne' => $ligne,
+                'produit' => $this->produitService->consulterProduit($ligne->getProduitId()),
+            ],
+            $commande->getLignes()
+        );
     }
 }
