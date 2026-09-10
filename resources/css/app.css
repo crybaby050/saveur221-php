@@ -29,6 +29,12 @@
 
     --font-voice: "Playfair Display", serif;
     --font-sans: "Inter", sans-serif;
+    
+    /* Identité du site public/client, distincte de l'espace interne */
+    --color-rouge: #D71920;
+    --color-rouge-clair: #E52B32;
+    --color-bleu-vif: #0072CE;
+    --color-creme-chaude: #FFF8F0;
 }
 
 @keyframes zoomLent {
