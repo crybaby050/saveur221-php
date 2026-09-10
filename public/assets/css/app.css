@@ -626,6 +626,12 @@
   .border-bordeaux {
     border-color: var(--color-bordeaux);
   }
+  .border-bordeaux\/30 {
+    border-color: color-mix(in srgb, #6C5CE7 30%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--color-bordeaux) 30%, transparent);
+    }
+  }
   .border-creme {
     border-color: var(--color-creme);
   }
@@ -642,6 +648,12 @@
     border-color: color-mix(in srgb, #EF4444 30%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       border-color: color-mix(in oklab, var(--color-danger) 30%, transparent);
+    }
+  }
+  .border-info\/30 {
+    border-color: color-mix(in srgb, #3B82F6 30%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--color-info) 30%, transparent);
     }
   }
   .border-ivoire\/10 {
@@ -751,6 +763,9 @@
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-or) 10%, transparent);
     }
+  }
+  .bg-succes {
+    background-color: var(--color-succes);
   }
   .bg-succes\/10 {
     background-color: color-mix(in srgb, #16A34A 10%, transparent);
@@ -1109,6 +1124,14 @@
     @supports (color: color-mix(in lab, red, red)) {
       .hover\:bg-ivoire\/5:hover {
         background-color: color-mix(in oklab, var(--color-ivoire) 5%, transparent);
+      }
+    }
+    .hover\:bg-succes\/90:hover {
+      background-color: color-mix(in srgb, #16A34A 90%, transparent);
+    }
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-succes\/90:hover {
+        background-color: color-mix(in oklab, var(--color-succes) 90%, transparent);
       }
     }
     .hover\:text-charbon:hover {
