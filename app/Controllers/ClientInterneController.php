@@ -7,14 +7,8 @@ namespace App\Controllers;
 use App\Services\AuthService;
 use App\Services\ClientService;
 use App\Services\CommandeService;
-use Core\View;
+use Core\Paginateur;
 
-/*
- * Gère la consultation des clients depuis l'espace Administrateur.
- * Entièrement en lecture seule : la création et la modification d'un
- * compte client relèvent exclusivement du client lui-même, via l'espace
- * public (ProfilController, AuthController).
- */
 final class ClientInterneController extends ControllerInterneBase
 {
     public function __construct(
@@ -25,31 +19,29 @@ final class ClientInterneController extends ControllerInterneBase
         parent::__construct($authService);
     }
 
-    /**
-     * Affiche la liste des clients, avec recherche optionnelle.
-     */
     public function index(): void
     {
         $this->exigerAdministrateur();
 
         $motCle = $_GET['recherche'] ?? null;
-        $clients = $motCle !== null
+        $clients = $motCle !== null && $motCle !== ''
             ? $this->clientService->rechercherClient($motCle)
             : $this->clientService->listerClients();
 
-        View::render('admin/clients/index', ['clients' => $clients]);
+        $pagination = new Paginateur($clients, (int) ($_GET['page'] ?? 1));
+
+        $this->afficherVueInterne('admin/clients/index', [
+            'clients' => $pagination->elements,
+            'pagination' => $pagination,
+            'motCle' => $motCle,
+        ]);
     }
 
-    /**
-     * Affiche le détail d'un client, avec l'historique de ses commandes.
-     *
-     * @param string $id Identifiant du client, extrait de l'URL par le Router
-     */
     public function detail(string $id): void
     {
         $this->exigerAdministrateur();
 
-        View::render('admin/clients/detail', [
+        $this->afficherVueInterne('admin/clients/detail', [
             'client' => $this->clientService->consulterClient((int) $id),
             'commandes' => $this->commandeService->listerCommandesClient((int) $id),
         ]);
