@@ -14,12 +14,6 @@ use App\Repositories\CommandeRepository;
 use App\Repositories\PaiementRepository;
 use DateTimeImmutable;
 
-/*
- * Applique les règles métier liées aux paiements. Ne dépend pas
- * directement de FactureRepository : la seule dépendance transverse est
- * RecuService, chargé de générer systématiquement un reçu après chaque
- * paiement, qu'il solde totalement la commande ou non.
- */
 final class PaiementService
 {
     public function __construct(
@@ -30,10 +24,10 @@ final class PaiementService
     }
 
     /**
-     * Retourne l'historique des paiements d'une commande.
+     * Retourne les paiements d'une commande.
      *
-     * @param int $commandeId Identifiant de la commande recherchée
-     * @return Paiement[] Paiements de cette commande
+     * @param int $commandeId Identifiant de la commande
+     * @return array Liste des paiements
      */
     public function consulterParCommande(int $commandeId): array
     {
@@ -41,9 +35,56 @@ final class PaiementService
     }
 
     /**
-     * Retourne les commandes non entièrement réglées.
+     * Retourne toutes les commandes avec leurs informations de paiement.
      *
-     * @return Commande[] Commandes impayées ou partiellement payées
+     * @return array Liste des commandes et de leurs soldes
+     */
+    public function consulterToutesCommandesAvecPaiements(): array
+    {
+        $commandes = $this->commandeRepository->trouverTous();
+
+        $resultat = [];
+
+        foreach ($commandes as $commande) {
+            $montantTotal = $commande->getMontantTotal();
+            $montantPaye = $this->paiementRepository->sommePaiements($commande->getId());
+            $montantRestant = max(0, $montantTotal - $montantPaye);
+
+            if ($montantPaye <= 0) {
+                $statutPaiement = 'IMPAYEE';
+            } elseif ($montantRestant > 0) {
+                $statutPaiement = 'PARTIELLE';
+            } else {
+                $statutPaiement = 'PAYEE';
+            }
+
+            $resultat[] = [
+                'commande' => $commande,
+                'montantTotal' => $montantTotal,
+                'montantPaye' => $montantPaye,
+                'montantRestant' => $montantRestant,
+                'statutPaiement' => $statutPaiement,
+            ];
+        }
+
+        return $resultat;
+    }
+
+    /**
+     * Retourne une commande à partir de son identifiant.
+     *
+     * @param int $commandeId Identifiant de la commande recherchée
+     * @return Commande|null La commande trouvée, ou null si elle n'existe pas
+     */
+    public function consulterCommande(int $commandeId): ?Commande
+    {
+        return $this->commandeRepository->trouverParId($commandeId);
+    }
+
+    /**
+     * Retourne les commandes impayées ou partiellement payées.
+     *
+     * @return array Liste des commandes concernées
      */
     public function consulterCommandesImpayees(): array
     {
@@ -51,45 +92,67 @@ final class PaiementService
     }
 
     /**
-     * Enregistre un paiement pour une commande, après vérification que le
-     * montant ne dépasse pas le solde restant. Met à jour le statut de
-     * paiement de la commande en conséquence (PARTIEL ou PAYEE), puis
-     * génère systématiquement le reçu correspondant.
+     * Enregistre un paiement pour une commande.
      *
-     * @param int   $commandeId Identifiant de la commande concernée
-     * @param float $montant    Montant du paiement à enregistrer
-     * @return Paiement Le paiement créé
-     *
-     * @throws CommandeInexistanteException si la commande n'existe pas
-     * @throws MontantPaiementInvalideException si le montant dépasse le solde restant
+     * @param int $commandeId Identifiant de la commande
+     * @param float $montant Montant du paiement
+     * @return Paiement Paiement créé
      */
     public function enregistrerPaiement(int $commandeId, float $montant): Paiement
     {
         $commande = $this->commandeRepository->trouverParId($commandeId);
 
         if ($commande === null) {
-            throw new CommandeInexistanteException("Commande introuvable avec l'id {$commandeId}.");
+            throw new CommandeInexistanteException(
+                "Commande introuvable avec l'id {$commandeId}."
+            );
+        }
+
+        if ($montant <= 0) {
+            throw new MontantPaiementInvalideException(
+                'Veuillez saisir un montant de paiement valide.'
+            );
         }
 
         $totalDejaPaye = $this->paiementRepository->sommePaiements($commandeId);
+
         $montantRestant = $commande->getMontantTotal() - $totalDejaPaye;
 
         if ($montant > $montantRestant) {
             throw new MontantPaiementInvalideException(
-                "Le montant saisi ({$montant}) dépasse le solde restant ({$montantRestant})."
+                'Le montant saisi (' .
+                number_format($montant, 0, ',', ' ') .
+                ' FCFA) dépasse le solde restant (' .
+                number_format($montantRestant, 0, ',', ' ') .
+                ' FCFA).'
             );
         }
 
-        $paiement = new Paiement(0, $commandeId, $montant, new DateTimeImmutable());
+        $paiement = new Paiement(
+            0,
+            $commandeId,
+            $montant,
+            new DateTimeImmutable()
+        );
+
         $paiement = $this->paiementRepository->creer($paiement);
 
         $nouveauTotalPaye = $totalDejaPaye + $montant;
+
         $soldeComplet = $nouveauTotalPaye >= $commande->getMontantTotal();
 
-        $commande->changerStatutPaiement($soldeComplet ? StatutPaiement::PAYEE : StatutPaiement::PARTIEL);
+        $commande->changerStatutPaiement(
+            $soldeComplet
+                ? StatutPaiement::PAYEE
+                : StatutPaiement::PARTIEL
+        );
+
         $this->commandeRepository->mettreAJour($commande);
 
-        $typePaiement = $soldeComplet ? TypePaiementRecu::TOTAL : TypePaiementRecu::PARTIEL;
+        $typePaiement = $soldeComplet
+            ? TypePaiementRecu::TOTAL
+            : TypePaiementRecu::PARTIEL;
+
         $this->recuService->genererRecu($paiement, $typePaiement);
 
         return $paiement;

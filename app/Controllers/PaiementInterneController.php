@@ -26,9 +26,9 @@ final class PaiementInterneController extends ControllerInterneBase
         $this->exigerUtilisateurConnecte();
 
         $this->afficherVueInterne('gerant/paiements/impayees', [
-            'titrePage' => 'Commandes impayées',
+            'titrePage' => 'Tous les paiements',
             'section' => 'paiements',
-            'commandes' => $this->paiementService->consulterCommandesImpayees(),
+            'commandes' => $this->paiementService->consulterToutesCommandesAvecPaiements(),
         ]);
     }
 
@@ -36,10 +36,18 @@ final class PaiementInterneController extends ControllerInterneBase
     {
         $this->exigerUtilisateurConnecte();
 
+        $commande = $this->paiementService->consulterCommande((int) $commandeId);
+
+        if ($commande === null) {
+            Response::redirect('/gerant/paiements/impayees');
+            return;
+        }
+
         $this->afficherVueInterne('gerant/paiements/historique', [
             'titrePage' => 'Paiements de la commande',
             'section' => 'paiements',
             'commandeId' => (int) $commandeId,
+            'commande' => $commande,
             'paiements' => $this->paiementService->consulterParCommande((int) $commandeId),
             'recus' => $this->recuService->consulterParCommande((int) $commandeId),
         ]);
@@ -57,10 +65,18 @@ final class PaiementInterneController extends ControllerInterneBase
 
             Response::redirect("/gerant/paiements/{$commandeId}");
         } catch (CommandeInexistanteException|MontantPaiementInvalideException $exception) {
+            $commande = $this->paiementService->consulterCommande((int) $commandeId);
+
+            if ($commande === null) {
+                Response::redirect('/gerant/paiements/impayees');
+                return;
+            }
+
             $this->afficherVueInterne('gerant/paiements/historique', [
                 'titrePage' => 'Paiements de la commande',
                 'section' => 'paiements',
                 'commandeId' => (int) $commandeId,
+                'commande' => $commande,
                 'paiements' => $this->paiementService->consulterParCommande((int) $commandeId),
                 'recus' => $this->recuService->consulterParCommande((int) $commandeId),
                 'erreur' => $exception->getMessage(),
