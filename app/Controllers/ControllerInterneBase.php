@@ -83,4 +83,9 @@ abstract class ControllerInterneBase
             'utilisateur' => $this->authService->utilisateurConnecte(),
         ], layout: 'layout/interne.layout');
     }
+
+    protected function avecUtilisateur(array $donnees): array
+    {
+        return [...$donnees, 'utilisateur' => $this->exigerUtilisateurConnecte()];
+    }
 }

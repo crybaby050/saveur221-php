@@ -8,11 +8,6 @@ use App\Services\AuthService;
 use App\Services\FactureService;
 use Core\View;
 
-/*
- * Gère la consultation des factures depuis l'espace interne (Gérant/Admin).
- * Entièrement en lecture seule : une facture est générée automatiquement
- * par CommandeService, jamais créée ni modifiée manuellement.
- */
 final class FactureInterneController extends ControllerInterneBase
 {
     public function __construct(
@@ -23,27 +18,23 @@ final class FactureInterneController extends ControllerInterneBase
     }
 
     /**
-     * Affiche la liste de toutes les factures émises.
+     * Affiche la liste des factures, avec recherche optionnelle par numéro.
      */
     public function index(): void
     {
-        $this->exigerUtilisateurConnecte();
+        $numero = $_GET['recherche'] ?? null;
 
-        View::render('gerant/factures/index', ['factures' => $this->factureService->listerFactures()]);
-    }
+        $factureTrouvee = ($numero !== null && $numero !== '')
+            ? $this->factureService->rechercherParNumero($numero)
+            : null;
 
-    /**
-     * Recherche une facture par son numéro lisible.
-     */
-    public function rechercher(): void
-    {
-        $this->exigerUtilisateurConnecte();
-
-        $facture = $this->factureService->rechercherParNumero($_GET['numero'] ?? '');
-
-        View::render('gerant/factures/index', [
+        View::render('gerant/factures/index', $this->avecUtilisateur([
+            'titrePage' => 'Factures',
+            'section' => 'factures',
             'factures' => $this->factureService->listerFactures(),
-            'factureTrouvee' => $facture,
-        ]);
+            'motCle' => $numero,
+            'factureTrouvee' => $factureTrouvee,
+            'aucunResultat' => $numero !== null && $numero !== '' && $factureTrouvee === null,
+        ]), 'layout/interne.layout');
     }
 }
