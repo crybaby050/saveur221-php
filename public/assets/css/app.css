@@ -764,6 +764,9 @@
       background-color: color-mix(in oklab, var(--color-or) 10%, transparent);
     }
   }
+  .bg-succes {
+    background-color: var(--color-succes);
+  }
   .bg-succes\/10 {
     background-color: color-mix(in srgb, #16A34A 10%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1121,6 +1124,14 @@
     @supports (color: color-mix(in lab, red, red)) {
       .hover\:bg-ivoire\/5:hover {
         background-color: color-mix(in oklab, var(--color-ivoire) 5%, transparent);
+      }
+    }
+    .hover\:bg-succes\/90:hover {
+      background-color: color-mix(in srgb, #16A34A 90%, transparent);
+    }
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-succes\/90:hover {
+        background-color: color-mix(in oklab, var(--color-succes) 90%, transparent);
       }
     }
     .hover\:text-charbon:hover {

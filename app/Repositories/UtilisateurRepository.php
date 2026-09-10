@@ -110,7 +110,7 @@ final class UtilisateurRepository implements RepositoryInterface
             'prenom' => $entite->getPrenom(),
             'email' => $entite->getEmail(),
             'motDePasse' => $entite->getMotDePasse(),
-            'actif' => $entite->isActif(),
+            'actif' => $entite->isActif() ? 'true' : 'false',
             'roleId' => $roleId,
         ]);
 
@@ -149,7 +149,7 @@ final class UtilisateurRepository implements RepositoryInterface
             'nom' => $entite->getNom(),
             'prenom' => $entite->getPrenom(),
             'email' => $entite->getEmail(),
-            'actif' => $entite->isActif(),
+            'actif' => $entite->isActif() ? 'true' : 'false',
             'roleId' => $roleId,
             'id' => $entite->getId(),
         ]);

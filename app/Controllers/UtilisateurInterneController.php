@@ -49,26 +49,27 @@ final class UtilisateurInterneController extends ControllerInterneBase
     public function ajouter(): void
     {
         $this->exigerAdministrateur();
-
+    
+        $motDePasse = $_POST['mot_de_passe'] ?? '';
+        $confirmation = $_POST['mot_de_passe_confirmation'] ?? '';
+    
+        if ($motDePasse !== $confirmation) {
+            $this->redirigerAvecErreur('La confirmation du mot de passe ne correspond pas.');
+            return;
+        }
+    
         try {
             $this->utilisateurService->ajouterUtilisateur(
                 nom: $_POST['nom'] ?? '',
                 prenom: $_POST['prenom'] ?? '',
                 email: $_POST['email'] ?? '',
-                motDePasse: $_POST['mot_de_passe'] ?? '',
+                motDePasse: $motDePasse,
                 role: Role::from($_POST['role'] ?? Role::GERANT->value),
             );
-
+    
             Response::redirect('/admin/utilisateurs');
         } catch (EmailDejaUtiliseException|MotDePasseInvalideException $exception) {
-            $pagination = new Paginateur($this->utilisateurService->listerUtilisateurs(), 1);
-
-            $this->afficherVueInterne('admin/utilisateurs/index', [
-                'utilisateurs' => $pagination->elements,
-                'pagination' => $pagination,
-                'motCle' => null,
-                'erreur' => $exception->getMessage(),
-            ]);
+            $this->redirigerAvecErreur($exception->getMessage());
         }
     }
 
@@ -97,11 +98,14 @@ final class UtilisateurInterneController extends ControllerInterneBase
 
     public function supprimer(string $id): void
     {
-        $this->exigerAdministrateur();
+        $admin = $this->exigerAdministrateur();
 
-        $this->utilisateurService->supprimerUtilisateur((int) $id);
-
-        Response::redirect('/admin/utilisateurs');
+        try {
+            $this->utilisateurService->supprimerUtilisateur((int) $id, $admin->getId());
+            Response::redirect('/admin/utilisateurs');
+        } catch (ModificationCompteProprieException $exception) {
+            $this->redirigerAvecErreur($exception->getMessage());
+        }
     }
 
     public function activer(string $id): void
@@ -115,11 +119,31 @@ final class UtilisateurInterneController extends ControllerInterneBase
 
     public function desactiver(string $id): void
     {
-        $this->exigerAdministrateur();
+        $admin = $this->exigerAdministrateur();
 
-        $this->utilisateurService->desactiver((int) $id);
+        try {
+            $this->utilisateurService->desactiver((int) $id, $admin->getId());
+            Response::redirect('/admin/utilisateurs');
+        } catch (ModificationCompteProprieException $exception) {
+            $this->redirigerAvecErreur($exception->getMessage());
+        }
+    }
 
-        Response::redirect('/admin/utilisateurs');
+    /**
+     * Réaffiche la liste des utilisateurs avec un message d'erreur — factorisé
+     * puisque changerRole(), desactiver() et supprimer() partagent tous les
+     * trois ce même besoin en cas de tentative d'auto-modification.
+     */
+    private function redirigerAvecErreur(string $message): void
+    {
+        $pagination = new Paginateur($this->utilisateurService->listerUtilisateurs(), 1);
+
+        $this->afficherVueInterne('admin/utilisateurs/index', [
+            'utilisateurs' => $pagination->elements,
+            'pagination' => $pagination,
+            'motCle' => null,
+            'erreur' => $message,
+        ]);
     }
 
     public function changerRole(string $id): void

@@ -206,49 +206,76 @@ $estActif = static fn(string $cle): bool => $section === $cle;
     </div>
 
     <!-- Modal de confirmation de suppression, partagé par tout l'espace interne -->
-<div id="modal-suppression" class="fixed inset-0 z-50 hidden items-center justify-center bg-charbon/50 p-4">
+<!-- Modal de confirmation générique, partagé par tout l'espace interne -->
+<div id="modal-confirmation" class="fixed inset-0 z-50 hidden items-center justify-center bg-charbon/50 p-4">
     <div class="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-        <p class="font-voice text-lg font-medium text-charbon">Confirmer la suppression</p>
-        <p id="modal-suppression-message" class="mt-2 text-sm text-gris-chaud">
+        <p id="modal-confirmation-titre" class="font-voice text-lg font-medium text-charbon">Confirmer l'action</p>
+        <p id="modal-confirmation-message" class="mt-2 text-sm text-gris-chaud">
             Cette action est irréversible.
         </p>
         <div class="mt-5 flex justify-end gap-3">
-            <button type="button" id="modal-suppression-annuler"
+            <button type="button" id="modal-confirmation-annuler"
                 class="rounded-md border border-creme px-4 py-2 text-sm font-medium text-charbon transition-colors hover:bg-ivoire">
                 Annuler
             </button>
-            <button type="button" id="modal-suppression-confirmer"
-                class="rounded-md bg-danger px-4 py-2 text-sm font-medium text-ivoire transition-colors hover:bg-danger/90">
-                Supprimer
+            <button type="button" id="modal-confirmation-confirmer"
+                class="rounded-md bg-bordeaux px-4 py-2 text-sm font-medium text-ivoire transition-colors hover:bg-bordeaux-sombre">
+                Confirmer
             </button>
         </div>
     </div>
 </div>
 
 <script>
-    let formulaireASupprimer = null;
+    let formulaireConfirmationActuel = null;
 
-    function demanderSuppression(formulaire, message) {
-        formulaireASupprimer = formulaire;
-        document.getElementById('modal-suppression-message').textContent =
-            message || 'Cette action est irréversible.';
-        document.getElementById('modal-suppression').classList.remove('hidden');
-        document.getElementById('modal-suppression').classList.add('flex');
-    }
+/**
+ * Ouvre le modal de confirmation partagé avant soumission d'un formulaire.
+ * options.titre, options.message, options.confirmLabel et
+ * options.confirmClass permettent d'adapter le texte et la couleur du
+ * bouton selon l'action (suppression en rouge, modification en violet...).
+ */
+function demanderConfirmation(formulaire, options = {}) {
+    formulaireConfirmationActuel = formulaire;
 
-    function fermerModalSuppression() {
-        formulaireASupprimer = null;
-        document.getElementById('modal-suppression').classList.add('hidden');
-        document.getElementById('modal-suppression').classList.remove('flex');
-    }
+    document.getElementById('modal-confirmation-titre').textContent = options.titre || 'Confirmer l\'action';
+    document.getElementById('modal-confirmation-message').textContent = options.message || 'Cette action est irréversible.';
 
-    document.getElementById('modal-suppression-annuler').addEventListener('click', fermerModalSuppression);
+    const boutonConfirmer = document.getElementById('modal-confirmation-confirmer');
+    boutonConfirmer.textContent = options.confirmLabel || 'Confirmer';
+    boutonConfirmer.className = 'rounded-md px-4 py-2 text-sm font-medium text-ivoire transition-colors '
+        + (options.confirmClass || 'bg-bordeaux hover:bg-bordeaux-sombre');
 
-    document.getElementById('modal-suppression-confirmer').addEventListener('click', () => {
-        if (formulaireASupprimer) {
-            formulaireASupprimer.submit();
-        }
+    document.getElementById('modal-confirmation').classList.remove('hidden');
+    document.getElementById('modal-confirmation').classList.add('flex');
+}
+
+function fermerModalConfirmation() {
+    formulaireConfirmationActuel = null;
+    document.getElementById('modal-confirmation').classList.add('hidden');
+    document.getElementById('modal-confirmation').classList.remove('flex');
+}
+
+// Lit les data-confirm-* d'un bouton plutôt que de générer du JS depuis
+// PHP — évite tout risque de casse sur les apostrophes des textes français.
+document.querySelectorAll('[data-confirm-titre]').forEach((bouton) => {
+    bouton.addEventListener('click', () => {
+        demanderConfirmation(bouton.closest('form'), {
+            titre: bouton.dataset.confirmTitre,
+            message: bouton.dataset.confirmMessage,
+            confirmLabel: bouton.dataset.confirmLabel,
+            confirmClass: bouton.dataset.confirmClass,
+        });
     });
+});
+
+document.getElementById('modal-confirmation-annuler').addEventListener('click', fermerModalConfirmation);
+
+document.getElementById('modal-confirmation-confirmer').addEventListener('click', () => {
+    if (formulaireConfirmationActuel) {
+        formulaireConfirmationActuel.submit();
+    }
+});
 </script>
 
     <script>

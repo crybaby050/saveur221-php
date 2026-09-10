@@ -96,17 +96,31 @@ function badge_statut(bool $actif): array
                             Modifier
                         </button>
 
-                        <form method="post" action="/admin/utilisateurs/<?= $utilisateurLigne->getId() ?>/<?= $utilisateurLigne->isActif() ? 'desactiver' : 'activer' ?>">
-                            <button type="submit" class="rounded-md border border-creme px-3 py-1.5 text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
-                                <?= $utilisateurLigne->isActif() ? 'Désactiver' : 'Activer' ?>
-                            </button>
-                        </form>
-
-                        <form method="post" action="/admin/utilisateurs/<?= $utilisateurLigne->getId() ?>/supprimer" onsubmit="return confirm('Supprimer cet utilisateur ?');">
-                            <button type="submit" class="rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
-                                Supprimer
-                            </button>
-                        </form>
+                        <?php if (!$estSoiMeme): ?>
+                            <form method="post" action="/admin/utilisateurs/<?= $utilisateurLigne->getId() ?>/<?= $utilisateurLigne->isActif() ? 'desactiver' : 'activer' ?>">
+                                <button type="button"
+                                    data-confirm-titre="<?= View::e(($utilisateurLigne->isActif() ? 'Désactiver' : 'Activer') . ' le compte') ?>"
+                                    data-confirm-message="<?= View::e($utilisateurLigne->isActif()
+                                        ? "Cet utilisateur ne pourra plus se connecter tant que le compte n'est pas réactivé."
+                                        : "Cet utilisateur pourra à nouveau se connecter.") ?>"
+                                    data-confirm-label="<?= View::e($utilisateurLigne->isActif() ? 'Désactiver' : 'Activer') ?>"
+                                    data-confirm-class="<?= $utilisateurLigne->isActif() ? 'bg-danger hover:bg-danger/90' : 'bg-succes hover:bg-succes/90' ?>"
+                                    class="rounded-md border border-creme px-3 py-1.5 text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
+                                    <?= $utilisateurLigne->isActif() ? 'Désactiver' : 'Activer' ?>
+                                </button>
+                            </form>
+                        
+                            <form method="post" action="/admin/utilisateurs/<?= $utilisateurLigne->getId() ?>/supprimer">
+                                <button type="button"
+                                    data-confirm-titre="Supprimer l'utilisateur"
+                                    data-confirm-message="Cette action est irréversible."
+                                    data-confirm-label="Supprimer"
+                                    data-confirm-class="bg-danger hover:bg-danger/90"
+                                    class="rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
+                                    Supprimer
+                                </button>
+                            </form>
+                        <?php endif; ?>
                     </div>
 
                     <form method="post" action="/admin/utilisateurs/<?= $utilisateurLigne->getId() ?>/role" class="mt-2">
@@ -173,16 +187,31 @@ function badge_statut(bool $actif): array
                                         class="rounded-md border border-creme px-3 py-1.5 text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
                                         Modifier
                                     </button>
-                                    <form method="post" action="/admin/utilisateurs/<?= $utilisateurLigne->getId() ?>/<?= $utilisateurLigne->isActif() ? 'desactiver' : 'activer' ?>">
-                                        <button type="submit" class="rounded-md border border-creme px-3 py-1.5 text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
-                                            <?= $utilisateurLigne->isActif() ? 'Désactiver' : 'Activer' ?>
-                                        </button>
-                                    </form>
-                                    <form method="post" action="/admin/utilisateurs/<?= $utilisateurLigne->getId() ?>/supprimer" onsubmit="return confirm('Supprimer cet utilisateur ?');">
-                                        <button type="submit" class="rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
-                                            Supprimer
-                                        </button>
-                                    </form>
+
+                                    <?php if (!$estSoiMeme): ?>
+                                        <form method="post" action="/admin/utilisateurs/<?= $utilisateurLigne->getId() ?>/<?= $utilisateurLigne->isActif() ? 'desactiver' : 'activer' ?>">
+                                            <button type="button"
+                                                data-confirm-titre="<?= View::e(($utilisateurLigne->isActif() ? 'Désactiver' : 'Activer') . ' le compte') ?>"
+                                                data-confirm-message="<?= View::e($utilisateurLigne->isActif()
+                                                    ? "Cet utilisateur ne pourra plus se connecter tant que le compte n'est pas réactivé."
+                                                    : "Cet utilisateur pourra à nouveau se connecter.") ?>"
+                                                data-confirm-label="<?= View::e($utilisateurLigne->isActif() ? 'Désactiver' : 'Activer') ?>"
+                                                data-confirm-class="<?= $utilisateurLigne->isActif() ? 'bg-danger hover:bg-danger/90' : 'bg-succes hover:bg-succes/90' ?>"
+                                                class="rounded-md border border-creme px-3 py-1.5 text-xs font-medium text-charbon transition-colors hover:bg-ivoire">
+                                                <?= $utilisateurLigne->isActif() ? 'Désactiver' : 'Activer' ?>
+                                            </button>
+                                        </form>
+                                        <form method="post" action="/admin/utilisateurs/<?= $utilisateurLigne->getId() ?>/supprimer">
+                                            <button type="button"
+                                                data-confirm-titre="Supprimer l'utilisateur"
+                                                data-confirm-message="Cette action est irréversible."
+                                                data-confirm-label="Supprimer"
+                                                data-confirm-class="bg-danger hover:bg-danger/90"
+                                                class="rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
+                                                Supprimer
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
@@ -217,43 +246,54 @@ function badge_statut(bool $actif): array
                     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                         <div>
                             <label for="tiroir-prenom" class="mb-1.5 block text-sm font-medium text-charbon">Prénom</label>
-                            <input type="text" id="tiroir-prenom" name="prenom" required
+                            <input type="text" id="tiroir-prenom" name="prenom"
                                 class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                            <p id="erreur-prenom" class="mt-1 hidden text-xs text-danger"></p>
                         </div>
                         <div>
                             <label for="tiroir-nom" class="mb-1.5 block text-sm font-medium text-charbon">Nom</label>
-                            <input type="text" id="tiroir-nom" name="nom" required
+                            <input type="text" id="tiroir-nom" name="nom"
                                 class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                            <p id="erreur-nom" class="mt-1 hidden text-xs text-danger"></p>
                         </div>
-                    </div>
 
-                    <div>
-                        <label for="tiroir-email" class="mb-1.5 block text-sm font-medium text-charbon">Email</label>
-                        <input type="email" id="tiroir-email" name="email" required
-                            class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
-                    </div>
+                        <div>
+                            <label for="tiroir-email" class="mb-1.5 block text-sm font-medium text-charbon">Email</label>
+                            <input type="email" id="tiroir-email" name="email"
+                                class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                            <p id="erreur-email" class="mt-1 hidden text-xs text-danger"></p>
+                        </div>
 
-                    <div id="champ-mot-de-passe-utilisateur">
-                        <label for="tiroir-mot-de-passe" class="mb-1.5 block text-sm font-medium text-charbon">Mot de passe</label>
-                        <input type="password" id="tiroir-mot-de-passe" name="mot_de_passe" minlength="6"
-                            class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
-                        <p class="mt-1 text-xs text-gris-chaud">Au moins 6 caractères.</p>
-                    </div>
+                        <div id="champ-mot-de-passe-utilisateur">
+                            <label for="tiroir-mot-de-passe" class="mb-1.5 block text-sm font-medium text-charbon">Mot de passe</label>
+                            <input type="password" id="tiroir-mot-de-passe" name="mot_de_passe"
+                                class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                            <p id="erreur-mot-de-passe" class="mt-1 hidden text-xs text-danger"></p>
+                        </div>
 
-                    <div id="champ-role-utilisateur">
-                        <label for="tiroir-role" class="mb-1.5 block text-sm font-medium text-charbon">Rôle</label>
-                        <select id="tiroir-role" name="role"
-                            class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
-                            <option value="GERANT">Gérant</option>
-                            <option value="ADMIN">Administrateur</option>
-                        </select>
+                        <div id="champ-confirmation-mot-de-passe">
+                            <label for="tiroir-mot-de-passe-confirmation" class="mb-1.5 block text-sm font-medium text-charbon">Confirmer le mot de passe</label>
+                            <input type="password" id="tiroir-mot-de-passe-confirmation" name="mot_de_passe_confirmation"
+                                class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                            <p id="erreur-mot-de-passe-confirmation" class="mt-1 hidden text-xs text-danger"></p>
+                        </div>
+
+                        <div id="champ-role-utilisateur">
+                            <label for="tiroir-role" class="mb-1.5 block text-sm font-medium text-charbon">Rôle</label>
+                            <select id="tiroir-role" name="role"
+                                class="h-10 w-full rounded-md border border-creme bg-white px-3 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10">
+                                <option value="GERANT">Gérant</option>
+                                <option value="ADMIN">Administrateur</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="flex justify-end gap-3 pt-2">
                         <button type="button" data-fermer-tiroir class="rounded-md border border-creme px-4 py-2.5 text-sm font-medium text-charbon transition-colors hover:bg-ivoire">
                             Annuler
                         </button>
-                        <button type="submit" class="rounded-md bg-bordeaux px-5 py-2.5 text-sm font-medium text-ivoire transition-colors hover:bg-bordeaux-sombre">
+                        <button type="button" onclick="validerEtConfirmerUtilisateur()"
+                            class="rounded-md bg-bordeaux px-5 py-2.5 text-sm font-medium text-ivoire transition-colors hover:bg-bordeaux-sombre">
                             Enregistrer
                         </button>
                     </div>
@@ -269,32 +309,99 @@ function badge_statut(bool $actif): array
     const tiroirUtilisateurForm = document.getElementById('formulaire-tiroir-utilisateur');
     const tiroirUtilisateurTitre = document.getElementById('titre-tiroir-utilisateur');
     const champMotDePasseUtilisateur = document.getElementById('champ-mot-de-passe-utilisateur');
+    const champConfirmationMotDePasse = document.getElementById('champ-confirmation-mot-de-passe');
     const champRoleUtilisateur = document.getElementById('champ-role-utilisateur');
-    const inputMotDePasseUtilisateur = document.getElementById('tiroir-mot-de-passe');
+
+    let modeAjoutUtilisateur = true;
+
+    function viderErreursUtilisateur() {
+        ['prenom', 'nom', 'email', 'mot-de-passe', 'mot-de-passe-confirmation'].forEach((champ) => {
+            const erreur = document.getElementById(`erreur-${champ}`);
+            erreur.textContent = '';
+            erreur.classList.add('hidden');
+        });
+    }
+
+    function afficherErreurChamp(champ, message) {
+        const erreur = document.getElementById(`erreur-${champ}`);
+        erreur.textContent = message;
+        erreur.classList.remove('hidden');
+    }
+
+    function validerEtConfirmerUtilisateur() {
+        viderErreursUtilisateur();
+        let valide = true;
+
+        const prenom = tiroirUtilisateurForm.prenom.value.trim();
+        const nom = tiroirUtilisateurForm.nom.value.trim();
+        const email = tiroirUtilisateurForm.email.value.trim();
+
+        if (prenom === '') {
+            afficherErreurChamp('prenom', 'Le prénom est requis.');
+            valide = false;
+        }
+        if (nom === '') {
+            afficherErreurChamp('nom', 'Le nom est requis.');
+            valide = false;
+        }
+        if (email === '') {
+            afficherErreurChamp('email', "L'email est requis.");
+            valide = false;
+        } else if (!email.includes('@')) {
+            afficherErreurChamp('email', 'Adresse email invalide.');
+            valide = false;
+        }
+
+        if (modeAjoutUtilisateur) {
+            const motDePasse = tiroirUtilisateurForm.mot_de_passe.value;
+            const confirmation = tiroirUtilisateurForm.mot_de_passe_confirmation.value;
+
+            if (motDePasse.length < 6) {
+                afficherErreurChamp('mot-de-passe', 'Au moins 6 caractères requis.');
+                valide = false;
+            }
+            if (confirmation !== motDePasse || confirmation === '') {
+                afficherErreurChamp('mot-de-passe-confirmation', 'Les mots de passe ne correspondent pas.');
+                valide = false;
+            }
+        }
+
+        if (!valide) {
+            return;
+        }
+
+        demanderConfirmation(tiroirUtilisateurForm, {
+            titre: 'Enregistrer les modifications',
+            message: 'Confirmer l\u2019enregistrement de cet utilisateur ?',
+            confirmLabel: 'Enregistrer',
+            confirmClass: 'bg-bordeaux hover:bg-bordeaux-sombre',
+        });
+    }
 
     function ouvrirTiroirUtilisateurAjout() {
         tiroirUtilisateurForm.reset();
+        viderErreursUtilisateur();
         tiroirUtilisateurForm.action = '/admin/utilisateurs/ajouter';
         tiroirUtilisateurTitre.textContent = 'Nouvel utilisateur';
+        modeAjoutUtilisateur = true;
         champMotDePasseUtilisateur.classList.remove('hidden');
+        champConfirmationMotDePasse.classList.remove('hidden');
         champRoleUtilisateur.classList.remove('hidden');
-        inputMotDePasseUtilisateur.required = true;
         document.getElementById('tiroir-utilisateur').classList.add('tiroir-ouvert');
     }
 
     function ouvrirTiroirUtilisateurModification(bouton) {
         tiroirUtilisateurForm.reset();
+        viderErreursUtilisateur();
         tiroirUtilisateurForm.action = `/admin/utilisateurs/${bouton.dataset.utilisateurId}/modifier`;
         tiroirUtilisateurForm.prenom.value = bouton.dataset.utilisateurPrenom;
         tiroirUtilisateurForm.nom.value = bouton.dataset.utilisateurNom;
         tiroirUtilisateurForm.email.value = bouton.dataset.utilisateurEmail;
-        tiroirUtilisateurTitre.textContent = 'Modifier l\'utilisateur';
-        // Mot de passe et rôle ne sont pas gérés par ce formulaire : modifier()
-        // ne les touche pas côté service, et le rôle se change désormais via
-        // le sélecteur dédié directement dans la liste.
+        tiroirUtilisateurTitre.textContent = 'Modifier l\u2019utilisateur';
+        modeAjoutUtilisateur = false;
         champMotDePasseUtilisateur.classList.add('hidden');
+        champConfirmationMotDePasse.classList.add('hidden');
         champRoleUtilisateur.classList.add('hidden');
-        inputMotDePasseUtilisateur.required = false;
         document.getElementById('tiroir-utilisateur').classList.add('tiroir-ouvert');
     }
 </script>

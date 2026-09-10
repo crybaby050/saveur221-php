@@ -127,8 +127,12 @@ final class UtilisateurService
      *
      * @param int $id Identifiant de l'utilisateur à supprimer
      */
-    public function supprimerUtilisateur(int $id): void
+    public function supprimerUtilisateur(int $id, int $connecteId): void
     {
+        if ($id === $connecteId) {
+            throw new ModificationCompteProprieException('Vous ne pouvez pas supprimer votre propre compte.');
+        }
+    
         $this->utilisateurRepository->supprimerParId($id);
     }
 
@@ -155,13 +159,18 @@ final class UtilisateurService
      *
      * @throws \InvalidArgumentException si l'utilisateur n'existe pas
      */
-    public function desactiver(int $id): void
+    public function desactiver(int $id, int $connecteId): void
     {
+        if ($id === $connecteId) {
+            throw new ModificationCompteProprieException('Vous ne pouvez pas désactiver votre propre compte.');
+        }
+
         $utilisateur = $this->trouverOuLever($id);
         $utilisateur->desactiver();
 
         $this->utilisateurRepository->mettreAJour($utilisateur);
     }
+
 
     /**
      * Change le rôle d'un utilisateur interne (ADMIN <-> GERANT). Un
