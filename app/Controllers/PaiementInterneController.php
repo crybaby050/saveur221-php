@@ -36,10 +36,13 @@ final class PaiementInterneController extends ControllerInterneBase
     {
         $this->exigerUtilisateurConnecte();
 
+        $commande = $this->paiementService->consulterCommande((int) $commandeId);
+
         $this->afficherVueInterne('gerant/paiements/historique', [
             'titrePage' => 'Paiements de la commande',
             'section' => 'paiements',
             'commandeId' => (int) $commandeId,
+            'commande' => $commande,
             'paiements' => $this->paiementService->consulterParCommande((int) $commandeId),
             'recus' => $this->recuService->consulterParCommande((int) $commandeId),
         ]);
@@ -57,11 +60,15 @@ final class PaiementInterneController extends ControllerInterneBase
 
             Response::redirect("/gerant/paiements/{$commandeId}");
         } catch (CommandeInexistanteException|MontantPaiementInvalideException $exception) {
+            $paiements = $this->paiementService->consulterParCommande((int) $commandeId);
+            $commande = $this->paiementService->consulterCommande((int) $commandeId);
+
             $this->afficherVueInterne('gerant/paiements/historique', [
                 'titrePage' => 'Paiements de la commande',
                 'section' => 'paiements',
                 'commandeId' => (int) $commandeId,
-                'paiements' => $this->paiementService->consulterParCommande((int) $commandeId),
+                'commande' => $commande,
+                'paiements' => $paiements,
                 'recus' => $this->recuService->consulterParCommande((int) $commandeId),
                 'erreur' => $exception->getMessage(),
             ]);
