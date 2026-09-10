@@ -336,20 +336,28 @@ if (boutonsVue.length > 0) {
     appliquerVue(localStorage.getItem('affichage-liste') || 'grille');
 }
 
-// Tiroirs génériques, réutilisables sur toute page de listing : tout
-// élément [data-fermer-tiroir] referme le tiroir parent, et cliquer sur
-// l'overlay (en dehors du panneau) le referme aussi. L'ouverture reste
-// spécifique à chaque entité (voir le JS propre à chaque page).
+function ouvrirTiroir(id) {
+    const tiroir = document.getElementById(id);
+
+    if (tiroir) {
+        tiroir.classList.add('tiroir-ouvert');
+    }
+}
+
+function fermerTiroir(tiroir) {
+    tiroir?.classList.remove('tiroir-ouvert');
+}
+
 document.querySelectorAll('[data-fermer-tiroir]').forEach((declencheur) => {
     declencheur.addEventListener('click', () => {
-        declencheur.closest('.tiroir-overlay')?.classList.remove('tiroir-ouvert');
+        fermerTiroir(declencheur.closest('.tiroir-overlay'));
     });
 });
 
 document.querySelectorAll('.tiroir-overlay').forEach((overlay) => {
     overlay.addEventListener('click', (evenement) => {
         if (evenement.target === overlay) {
-            overlay.classList.remove('tiroir-ouvert');
+            fermerTiroir(overlay);
         }
     });
 });
