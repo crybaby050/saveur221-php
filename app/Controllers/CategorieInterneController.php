@@ -86,20 +86,34 @@ final class CategorieInterneController extends ControllerInterneBase
     }
 
     public function supprimer(string $id): void
-    {
-        $this->exigerUtilisateurConnecte();
+{
+    $this->exigerUtilisateurConnecte();
 
-        try {
-            $this->categorieService->supprimerCategorie((int) $id);
+    try {
+        $this->categorieService->supprimerCategorie((int) $id);
 
-            Response::redirect('/gerant/categories');
-        } catch (CategorieUtiliseeException $exception) {
-            $this->afficherVueInterne('gerant/categories/index', [
-                'categories' => $this->categorieService->listerCategories(),
-                'erreur' => $exception->getMessage(),
-            ]);
-        }
+        Response::redirect('/gerant/categories');
+
+    } catch (CategorieUtiliseeException $exception) {
+        $motCle = $_GET['recherche'] ?? null;
+
+        $categories = $motCle !== null && $motCle !== ''
+            ? $this->categorieService->rechercherCategorie($motCle)
+            : $this->categorieService->listerCategories();
+
+        $pagination = new \Core\Paginateur(
+            $categories,
+            (int) ($_GET['page'] ?? 1)
+        );
+
+        $this->afficherVueInterne('gerant/categories/index', [
+            'categories' => $pagination->elements,
+            'pagination' => $pagination,
+            'motCle' => $motCle,
+            'erreur' => $exception->getMessage(),
+        ]);
     }
+}
 
     private function uploaderImageSiPresente(string $dossier): ?string
     {
