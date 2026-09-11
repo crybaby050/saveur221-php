@@ -177,10 +177,10 @@ foreach ($commandes as $ligne) {
                         <tr
                             class="ligne-paiement border-b border-creme last:border-b-0"
                             data-statut="<?= View::e($statutPaiement) ?>"
-                            data-recherche="<?= View::e(strtolower('commande ' . $commande->getId() . ' ' . $statutPaiement)) ?>"
+                            data-recherche="<?= View::e(strtolower($commande->getNumeroCommande() . ' ' . $statutPaiement)) ?>"
                         >
                             <td class="px-5 py-4">
-                                <span class="font-medium text-charbon">#<?= View::e((string) $commande->getId()) ?></span>
+                                <span class="font-medium text-charbon"><?= View::e($commande->getNumeroCommande()) ?></span>
                             </td>
 
                             <td class="px-5 py-4 text-sm text-gris-chaud">
