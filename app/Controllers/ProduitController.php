@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Services\AuthService;
+use App\Services\AvisService;
 use App\Services\CategorieService;
 use App\Services\PanierService;
 use App\Services\ProduitService;
@@ -17,6 +18,7 @@ final class ProduitController
         private readonly ProduitService $produitService,
         private readonly CategorieService $categorieService,
         private readonly PanierService $panierService,
+        private readonly AvisService $avisService,
         private readonly AuthService $authService,
     ) {
     }
@@ -56,12 +58,18 @@ final class ProduitController
             fn($p) => $p->getId() !== $produit->getId()
         ));
 
+        $client = $this->authService->clientConnecte();
+        $infosAvis = $this->avisService->consulterParProduit($produit->getId());
+
         View::render('produits/detail', [
             'produit' => $produit,
             'suggestions' => array_slice($suggestions, 0, 3),
             'lignesPanier' => $this->panierService->contenu(),
             'montantTotalPanier' => $this->panierService->montantTotal(),
-            'client' => $this->authService->clientConnecte(),
+            'client' => $client,
+            'avisDuProduit' => $infosAvis['avis'],
+            'noteMoyenne' => $infosAvis['noteMoyenne'],
+            'peutDeposerAvis' => $client !== null && $this->avisService->peutDeposerAvis($client->getId(), $produit->getId()),
             'titrePage' => $produit->getLibelle(),
         ]);
     }
