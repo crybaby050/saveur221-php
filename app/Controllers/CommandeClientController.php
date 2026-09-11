@@ -12,14 +12,9 @@ use App\Services\AuthService;
 use App\Services\CommandeService;
 use App\Services\PaiementService;
 use App\Services\PanierService;
+use Core\Response;
 use Core\View;
 
-/*
- * Gère le passage de commande, le suivi et l'historique côté client.
- * Nommé CommandeClientController (plutôt que CommandeController tout
- * court) pour bien le distinguer de son équivalent côté Gérant, qui
- * couvre des actions très différentes (changement de statut, annulation).
- */
 final class CommandeClientController extends ControllerClientBase
 {
     public function __construct(
@@ -32,17 +27,28 @@ final class CommandeClientController extends ControllerClientBase
     }
 
     /**
-     * Valide le panier du client connecté pour créer une commande, puis
-     * redirige vers la page de suivi de cette commande.
+     * Valide le panier du client connecté pour créer une commande. Si
+     * personne n'est connecté, réaffiche le panier avec une invitation à
+     * se connecter, plutôt que de rediriger le visiteur ailleurs.
      */
     public function valider(): void
     {
-        $client = $this->exigerClientConnecte();
+        $client = $this->authService->clientConnecte();
+
+        if ($client === null) {
+            View::render('panier/index', [
+                'lignes' => $this->panierService->contenu(),
+                'montantTotal' => $this->panierService->montantTotal(),
+                'client' => null,
+            ]);
+            return;
+        }
 
         if ($this->panierService->estVide()) {
             View::render('panier/index', [
                 'lignes' => $this->panierService->contenu(),
                 'montantTotal' => $this->panierService->montantTotal(),
+                'client' => $client,
                 'erreur' => 'Votre panier est vide.',
             ]);
             return;
@@ -58,48 +64,35 @@ final class CommandeClientController extends ControllerClientBase
 
             $this->panierService->vider();
 
-            \Core\Response::redirect("/commandes/{$commande->getId()}/suivi");
+            Response::redirect("/commandes/{$commande->getId()}/suivi");
         } catch (ProduitInexistantException|StockInsuffisantException|CommandeInvalideException $exception) {
             View::render('panier/index', [
                 'lignes' => $this->panierService->contenu(),
                 'montantTotal' => $this->panierService->montantTotal(),
+                'client' => $client,
                 'erreur' => $exception->getMessage(),
             ]);
         }
     }
 
-    /**
-     * Affiche le suivi d'une commande : son statut actuel dans le cycle
-     * de préparation.
-     *
-     * @param string $id Identifiant de la commande, extrait de l'URL par le Router
-     */
     public function suivi(string $id): void
     {
         $client = $this->exigerClientConnecte();
         $commande = $this->trouverCommandeDuClient((int) $id, $client->getId());
 
-        View::render('commandes/suivi', ['commande' => $commande]);
+        View::render('commandes/suivi', ['commande' => $commande, 'client' => $client]);
     }
 
-    /**
-     * Affiche l'historique complet des commandes du client connecté.
-     */
     public function historique(): void
     {
         $client = $this->exigerClientConnecte();
 
         View::render('commandes/historique', [
             'commandes' => $this->commandeService->listerCommandesClient($client->getId()),
+            'client' => $client,
         ]);
     }
 
-    /**
-     * Affiche le détail complet d'une commande passée : ses lignes, son
-     * montant, son statut, et l'historique de ses paiements.
-     *
-     * @param string $id Identifiant de la commande, extrait de l'URL par le Router
-     */
     public function detail(string $id): void
     {
         $client = $this->exigerClientConnecte();
@@ -108,20 +101,10 @@ final class CommandeClientController extends ControllerClientBase
         View::render('commandes/detail', [
             'commande' => $commande,
             'paiements' => $this->paiementService->consulterParCommande($commande->getId()),
+            'client' => $client,
         ]);
     }
 
-    /**
-     * Récupère une commande en vérifiant qu'elle appartient bien au client
-     * en cours — empêche un client de consulter la commande d'un autre en
-     * modifiant l'identifiant dans l'URL.
-     *
-     * @param int $commandeId Identifiant de la commande recherchée
-     * @param int $clientId   Identifiant du client actuellement connecté
-     * @return \App\Models\Commande La commande trouvée
-     *
-     * @throws AccesRefuseException si la commande n'appartient pas à ce client
-     */
     private function trouverCommandeDuClient(int $commandeId, int $clientId): \App\Models\Commande
     {
         $commande = $this->commandeService->consulterCommande($commandeId);
