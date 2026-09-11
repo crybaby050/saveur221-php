@@ -81,7 +81,7 @@ function badge_statut_commande(string $statut): string
         </div>
     <?php else: ?>
         <div class="overflow-x-auto rounded-xl border border-creme bg-white shadow-sm">
-            <table class="w-full min-w-[600px] text-left text-sm">
+            <table class="w-full min-w-[700px] text-left text-sm">
                 <thead>
                     <tr class="border-b border-creme text-xs uppercase tracking-wide text-gris-chaud">
                         <th class="px-5 py-3 font-medium">Numéro</th>

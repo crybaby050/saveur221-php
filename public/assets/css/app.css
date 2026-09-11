@@ -604,8 +604,14 @@
   .min-w-\[65px\] {
     min-width: 65px;
   }
-  .min-w-\[600px\] {
-    min-width: 600px;
+  .min-w-\[550px\] {
+    min-width: 550px;
+  }
+  .min-w-\[650px\] {
+    min-width: 650px;
+  }
+  .min-w-\[700px\] {
+    min-width: 700px;
   }
   .min-w-\[850px\] {
     min-width: 850px;

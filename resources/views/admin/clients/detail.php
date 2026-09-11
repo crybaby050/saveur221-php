@@ -78,7 +78,7 @@ $totalDepense = array_reduce($commandes, fn(float $somme, $commande) => $somme +
             <p class="px-5 py-6 text-sm text-gris-chaud">Ce client n'a passé aucune commande.</p>
         <?php else: ?>
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
+                <table class="w-full min-w-[550px] text-left text-sm">
                     <thead>
                         <tr class="border-b border-creme text-xs uppercase tracking-wide text-gris-chaud">
                             <th class="px-5 py-3 font-medium">Numéro</th>
