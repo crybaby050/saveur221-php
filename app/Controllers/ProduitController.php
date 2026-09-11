@@ -32,7 +32,7 @@ final class ProduitController
             default => $this->produitService->listerProduits(),
         };
 
-        View::render('produits/catalogue', [
+        View::render('produits/menu', [
             'produits' => $produits,
             'categories' => $this->categorieService->listerCategories(),
             'categorieActive' => $categorieId,

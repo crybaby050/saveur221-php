@@ -11,6 +11,12 @@ use App\Services\PanierService;
 use Core\Response;
 use Core\View;
 
+/*
+ * Gère le panier. Il vit en session, indépendamment de tout compte
+ * client : un visiteur non connecté peut librement le consulter et le
+ * modifier. Seule la validation finale de la commande (voir
+ * CommandeClientController::valider) exige d'être connecté.
+ */
 final class PanierController extends ControllerClientBase
 {
     public function __construct(
@@ -22,55 +28,44 @@ final class PanierController extends ControllerClientBase
 
     public function afficher(): void
     {
-        $this->exigerClientConnecte();
-    
-        View::render('panier/index', $this->avecClient([
-            'titrePage' => 'Mon panier',
+        View::render('panier/index', [
             'lignes' => $this->panierService->contenu(),
             'montantTotal' => $this->panierService->montantTotal(),
-        ]));
+            'client' => $this->authService->clientConnecte(),
+            'erreur' => $_GET['erreur'] ?? null,
+        ]);
     }
-    
+
     public function ajouter(): void
     {
-        $this->exigerClientConnecte();
-    
         try {
             $this->panierService->ajouter(
                 produitId: (int) ($_POST['produit_id'] ?? 0),
                 quantite: (int) ($_POST['quantite'] ?? 1),
             );
-    
+
             Response::redirect('/panier');
         } catch (ProduitInexistantException|StockInsuffisantException $exception) {
-            View::render('produits/catalogue', $this->avecClient(['erreur' => $exception->getMessage()]));
+            Response::redirect('/panier?erreur=' . urlencode($exception->getMessage()));
         }
     }
-    
+
     public function modifierQuantite(): void
     {
-        $this->exigerClientConnecte();
-    
         try {
             $this->panierService->modifierQuantite(
                 produitId: (int) ($_POST['produit_id'] ?? 0),
                 quantite: (int) ($_POST['quantite'] ?? 1),
             );
-    
+
             Response::redirect('/panier');
         } catch (ProduitInexistantException|StockInsuffisantException $exception) {
-            View::render('panier/index', $this->avecClient([
-                'lignes' => $this->panierService->contenu(),
-                'montantTotal' => $this->panierService->montantTotal(),
-                'erreur' => $exception->getMessage(),
-            ]));
+            Response::redirect('/panier?erreur=' . urlencode($exception->getMessage()));
         }
     }
 
     public function retirer(string $produitId): void
     {
-        $this->exigerClientConnecte();
-
         $this->panierService->retirer((int) $produitId);
 
         Response::redirect('/panier');
@@ -78,8 +73,6 @@ final class PanierController extends ControllerClientBase
 
     public function vider(): void
     {
-        $this->exigerClientConnecte();
-
         $this->panierService->vider();
 
         Response::redirect('/panier');

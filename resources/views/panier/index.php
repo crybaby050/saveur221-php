@@ -9,7 +9,7 @@ $titrePage = 'Mon panier';
 
     <h1 class="font-voice text-2xl font-black text-charbon">Mon panier</h1>
 
-    <?php if (isset($erreur)): ?>
+    <?php if (!empty($erreur)): ?>
         <p class="mt-4 rounded-2xl border-l-4 border-rouge bg-rouge/10 px-4 py-3 text-sm text-rouge">
             <?= View::e($erreur) ?>
         </p>
@@ -78,11 +78,20 @@ $titrePage = 'Mon panier';
                 <span class="text-xl font-black text-rouge"><?= number_format($montantTotal, 0, ',', ' ') ?> FCFA</span>
             </div>
 
-            <form method="post" action="/commande/valider" class="mt-4">
-                <button type="submit" class="flex w-full items-center justify-center rounded-full bg-rouge py-3.5 text-sm font-bold text-white transition-colors hover:bg-rouge-clair">
-                    Valider la commande
-                </button>
-            </form>
+            <?php if (!empty($client)): ?>
+                <form method="post" action="/commande/valider" class="mt-4">
+                    <button type="submit" class="flex w-full items-center justify-center rounded-full bg-rouge py-3.5 text-sm font-bold text-white transition-colors hover:bg-rouge-clair">
+                        Valider la commande
+                    </button>
+                </form>
+            <?php else: ?>
+                <div class="mt-4 rounded-2xl border border-rouge/20 bg-rouge/5 p-4 text-center">
+                    <p class="text-sm text-charbon">Connectez-vous pour finaliser votre commande.</p>
+                    <a href="/connexion" class="mt-3 inline-block rounded-full bg-rouge px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-rouge-clair">
+                        Se connecter
+                    </a>
+                </div>
+            <?php endif; ?>
 
             <form method="post" action="/panier/vider" class="mt-2">
                 <button type="submit" class="flex w-full items-center justify-center rounded-full border border-creme py-3 text-sm font-medium text-gris-chaud transition-colors hover:bg-creme">

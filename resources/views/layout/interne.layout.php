@@ -250,6 +250,15 @@ function demanderConfirmation(formulaire, options = {}) {
     document.getElementById('modal-confirmation').classList.add('flex');
 }
 
+function demanderSuppression(formulaire, message) {
+    demanderConfirmation(formulaire, {
+        titre: 'Confirmer la suppression',
+        message: message || 'Cette action est irréversible.',
+        confirmLabel: 'Supprimer',
+        confirmClass: 'bg-danger hover:bg-danger/90'
+    });
+}
+
 function fermerModalConfirmation() {
     formulaireConfirmationActuel = null;
     document.getElementById('modal-confirmation').classList.add('hidden');

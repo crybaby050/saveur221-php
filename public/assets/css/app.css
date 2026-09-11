@@ -994,6 +994,12 @@
   .bg-rouge {
     background-color: var(--color-rouge);
   }
+  .bg-rouge\/5 {
+    background-color: color-mix(in srgb, #D71920 5%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-rouge) 5%, transparent);
+    }
+  }
   .bg-rouge\/10 {
     background-color: color-mix(in srgb, #D71920 10%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1606,6 +1612,9 @@
     .sm\:grid-cols-3 {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+    .sm\:grid-cols-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
     .sm\:flex-row {
       flex-direction: row;
     }
@@ -1673,6 +1682,9 @@
     }
     .lg\:block {
       display: block;
+    }
+    .lg\:flex {
+      display: flex;
     }
     .lg\:hidden {
       display: none;
