@@ -12,6 +12,7 @@ use App\Services\AuthService;
 use App\Services\CommandeService;
 use App\Services\PaiementService;
 use App\Services\PanierService;
+use App\Services\ProduitService;
 use Core\Response;
 use Core\View;
 
@@ -21,6 +22,7 @@ final class CommandeClientController extends ControllerClientBase
         private readonly CommandeService $commandeService,
         private readonly PanierService $panierService,
         private readonly PaiementService $paiementService,
+        private readonly ProduitService $produitService,
         AuthService $authService,
     ) {
         parent::__construct($authService);
@@ -100,6 +102,7 @@ final class CommandeClientController extends ControllerClientBase
 
         View::render('commandes/detail', [
             'commande' => $commande,
+            'lignesEnrichies' => $this->enrichirLignes($commande),
             'paiements' => $this->paiementService->consulterParCommande($commande->getId()),
             'client' => $client,
         ]);
@@ -114,5 +117,22 @@ final class CommandeClientController extends ControllerClientBase
         }
 
         return $commande;
+    }
+
+    /**
+     * Associe à chaque ligne de la commande le produit correspondant, pour
+     * afficher son nom réel plutôt que son identifiant.
+     *
+     * @return array<int, array{ligne: \App\Models\LigneCommande, produit: ?\App\Models\Produit}>
+     */
+    private function enrichirLignes(\App\Models\Commande $commande): array
+    {
+        return array_map(
+            fn($ligne) => [
+                'ligne' => $ligne,
+                'produit' => $this->produitService->consulterProduit($ligne->getProduitId()),
+            ],
+            $commande->getLignes()
+        );
     }
 }

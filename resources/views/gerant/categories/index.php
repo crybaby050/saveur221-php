@@ -178,7 +178,7 @@ $section = 'categories';
         </div>
 
         <!-- Vue tableau -->
-        <div data-vue-contenu="table" class="hidden overflow-hidden rounded-xl border border-creme bg-white shadow-sm">
+        <div data-vue-contenu="table" class="hidden overflow-x-auto rounded-xl border border-creme bg-white shadow-sm">
             <table class="w-full text-left text-sm">
                 <thead>
                     <tr class="border-b border-creme text-xs uppercase tracking-wide text-gris-chaud">

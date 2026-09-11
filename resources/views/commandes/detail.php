@@ -60,10 +60,18 @@ function classe_statut_commande(string $statut): string
         </div>
 
         <div class="mt-5 divide-y divide-creme border-t border-creme">
-            <?php foreach ($commande->getLignes() as $ligne): ?>
-                <div class="flex items-center justify-between py-3 text-sm">
-                    <span class="text-charbon">Produit #<?= $ligne->getProduitId() ?> <span class="text-gris-chaud">× <?= $ligne->getQuantite() ?></span></span>
-                    <span class="font-medium text-charbon"><?= number_format($ligne->calculerSousTotal(), 0, ',', ' ') ?> FCFA</span>
+            <?php foreach ($lignesEnrichies as $entree): ?>
+                <?php ['ligne' => $ligne, 'produit' => $produit] = $entree; ?>
+                <div class="flex items-center gap-3 py-3">
+                    <img
+                        src="<?= View::e($produit?->getImage() ?? '/assets/images/produit-defaut.svg') ?>"
+                        alt=""
+                        class="h-10 w-10 shrink-0 rounded-xl object-cover"
+                    >
+                    <div class="flex flex-1 items-center justify-between text-sm">
+                        <span class="text-charbon"><?= View::e($produit?->getLibelle() ?? 'Produit supprimé') ?> <span class="text-gris-chaud">× <?= $ligne->getQuantite() ?></span></span>
+                        <span class="font-medium text-charbon"><?= number_format($ligne->calculerSousTotal(), 0, ',', ' ') ?> FCFA</span>
+                    </div>
                 </div>
             <?php endforeach; ?>
         </div>
