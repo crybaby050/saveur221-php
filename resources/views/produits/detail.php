@@ -1,6 +1,26 @@
 <?php
 
 use Core\View;
+
+$erreurAvis = $_GET['erreur'] ?? null;
+
+function etoiles_affichage(float|int|null $note): string
+{
+    if ($note === null) {
+        return '';
+    }
+
+    $pleines = (int) round($note);
+    $etoiles = '';
+
+    for ($i = 1; $i <= 5; $i++) {
+        $etoiles .= $i <= $pleines
+            ? '<svg class="h-4 w-4 fill-current text-rouge" viewBox="0 0 24 24"><path d="M12 2.5 14.8 9l7 .6-5.3 4.6 1.6 6.8L12 17.6 5.9 21l1.6-6.8L2.2 9.6l7-.6L12 2.5Z"/></svg>'
+            : '<svg class="h-4 w-4 text-creme" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2.5 14.8 9l7 .6-5.3 4.6 1.6 6.8L12 17.6 5.9 21l1.6-6.8L2.2 9.6l7-.6L12 2.5Z"/></svg>';
+    }
+
+    return $etoiles;
+}
 ?>
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -84,6 +104,95 @@ use Core\View;
                 </div>
             </section>
         <?php endif; ?>
+
+        <!-- Avis -->
+        <section class="mt-8">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-black text-charbon">Avis clients</h2>
+                <?php if ($noteMoyenne !== null): ?>
+                    <div class="flex items-center gap-1.5">
+                        <span class="flex items-center gap-0.5"><?= etoiles_affichage($noteMoyenne) ?></span>
+                        <span class="text-xs font-bold text-charbon"><?= number_format($noteMoyenne, 1) ?>/5</span>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <?php if ($erreurAvis): ?>
+                <p class="mt-3 rounded-2xl border-l-4 border-rouge bg-rouge/10 px-4 py-3 text-sm text-rouge">
+                    <?= View::e($erreurAvis) ?>
+                </p>
+            <?php endif; ?>
+
+            <!-- Formulaire de dépôt, uniquement si le client est éligible -->
+            <?php if ($peutDeposerAvis): ?>
+                <div class="mt-4 rounded-2xl bg-white p-5 shadow-sm">
+                    <p class="text-sm font-bold text-charbon">Donner votre avis</p>
+                    <form method="post" action="/produits/<?= $produit->getId() ?>/avis" class="mt-3">
+                        <div class="flex items-center gap-1" id="selecteur-etoiles">
+                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                <button type="button" data-valeur-etoile="<?= $i ?>" class="etoile-selection text-2xl text-creme transition-colors hover:text-rouge" aria-label="<?= $i ?> étoile(s)">
+                                    ★
+                                </button>
+                            <?php endfor; ?>
+                            <input type="hidden" name="note" id="champ-note" value="0" required>
+                        </div>
+
+                        <textarea
+                            name="commentaire"
+                            rows="3"
+                            placeholder="Partagez votre expérience (facultatif)..."
+                            class="mt-3 w-full rounded-2xl border border-creme bg-white px-4 py-3 text-sm text-charbon placeholder:text-gris-chaud focus:border-rouge focus:outline-none focus:ring-3 focus:ring-rouge/10"
+                        ></textarea>
+
+                        <button type="submit" class="mt-3 rounded-full bg-rouge px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-rouge-clair">
+                            Publier mon avis
+                        </button>
+                    </form>
+                </div>
+
+                <script>
+                    (function () {
+                        const boutonsEtoiles = document.querySelectorAll('#selecteur-etoiles .etoile-selection');
+                        const champNote = document.getElementById('champ-note');
+
+                        function appliquerSelection(valeur) {
+                            boutonsEtoiles.forEach((bouton) => {
+                                const valeurBouton = Number(bouton.dataset.valeurEtoile);
+                                bouton.classList.toggle('text-rouge', valeurBouton <= valeur);
+                                bouton.classList.toggle('text-creme', valeurBouton > valeur);
+                            });
+                        }
+
+                        boutonsEtoiles.forEach((bouton) => {
+                            bouton.addEventListener('click', () => {
+                                const valeur = Number(bouton.dataset.valeurEtoile);
+                                champNote.value = valeur;
+                                appliquerSelection(valeur);
+                            });
+                        });
+                    })();
+                </script>
+            <?php endif; ?>
+
+            <!-- Liste des avis, visible par tous -->
+            <?php if (empty($avisDuProduit)): ?>
+                <p class="mt-4 text-sm text-gris-chaud">Aucun avis pour le moment.</p>
+            <?php else: ?>
+                <div class="mt-4 space-y-3">
+                    <?php foreach ($avisDuProduit as $avis): ?>
+                        <div class="rounded-2xl bg-white p-4 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center gap-0.5"><?= etoiles_affichage($avis->getNote()) ?></span>
+                                <span class="text-[11px] text-gris-chaud"><?= $avis->getDateAvis()->format('d/m/Y') ?></span>
+                            </div>
+                            <?php if ($avis->getCommentaire()): ?>
+                                <p class="mt-2 text-sm text-charbon"><?= View::e($avis->getCommentaire()) ?></p>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </section>
 
     </div>
 

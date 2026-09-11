@@ -9,11 +9,12 @@ use App\Exceptions\AvisNonAutoriseException;
 use App\Services\AuthService;
 use App\Services\AvisService;
 use Core\Response;
-use Core\View;
 
 /*
- * Gère le dépôt d'un avis par le client, sur un produit qu'il a
- * effectivement commandé et reçu.
+ * Traite le dépôt d'un avis par le client, sur un produit qu'il a
+ * effectivement commandé et reçu. Le formulaire lui-même est intégré
+ * directement sous la fiche produit (voir produits/detail.php), donc ce
+ * contrôleur n'a plus qu'à traiter la soumission.
  */
 final class AvisController extends ControllerClientBase
 {
@@ -22,23 +23,6 @@ final class AvisController extends ControllerClientBase
         AuthService $authService,
     ) {
         parent::__construct($authService);
-    }
-
-    /**
-     * Affiche le formulaire de dépôt d'avis pour un produit.
-     *
-     * @param string $produitId Identifiant du produit, extrait de l'URL par le Router
-     */
-    public function afficherFormulaire(string $produitId): void
-    {
-        $client = $this->exigerClientConnecte();
-
-        if (!$this->avisService->peutDeposerAvis($client->getId(), (int) $produitId)) {
-            Response::redirect('/produits/' . $produitId);
-            return;
-        }
-
-        View::render('avis/formulaire', ['produitId' => (int) $produitId], layout: 'layout/base.layout');
     }
 
     /**
@@ -60,10 +44,7 @@ final class AvisController extends ControllerClientBase
 
             Response::redirect("/produits/{$produitId}");
         } catch (AvisNonAutoriseException|AvisDejaDeposeException $exception) {
-            View::render('avis/formulaire', [
-                'produitId' => (int) $produitId,
-                'erreur' => $exception->getMessage(),
-            ], layout: 'layout/base.layout');
+            Response::redirect("/produits/{$produitId}?erreur=" . urlencode($exception->getMessage()));
         }
     }
 }

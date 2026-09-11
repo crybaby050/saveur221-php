@@ -41,7 +41,6 @@ $router->get('/profil', [ProfilController::class, 'afficher']);
 $router->post('/profil', [ProfilController::class, 'modifier']);
 $router->post('/profil/mot-de-passe', [ProfilController::class, 'changerMotDePasse']);
 
-$router->get('/produits/{produitId}/avis', [AvisController::class, 'afficherFormulaire']);
 $router->post('/produits/{produitId}/avis', [AvisController::class, 'deposer']);
 
 
