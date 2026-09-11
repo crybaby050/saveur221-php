@@ -12,6 +12,9 @@ use Core\View;
  */
 
 $client ??= null;
+$initialesClient = $client !== null
+    ? mb_strtoupper(mb_substr($client->getPrenom(), 0, 1) . mb_substr($client->getNom(), 0, 1))
+    : null;
 
 /*
  * Le panier vit uniquement en session (voir PanierService), donc son
@@ -75,8 +78,12 @@ function icone_publique(string $nom): string
                     <?php endif; ?>
                 </a>
 
-                <a href="<?= $client ? '/profil' : '/connexion' ?>" class="flex h-10 w-10 items-center justify-center rounded-full border border-creme bg-white">
-                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><?= icone_publique('personne') ?></svg>
+                <a href="<?= $client ? '/profil' : '/connexion' ?>" class="flex h-10 w-10 items-center justify-center rounded-full <?= $client ? 'bg-rouge text-white' : 'border border-creme bg-white' ?>">
+                    <?php if ($client): ?>
+                        <span class="text-xs font-black"><?= View::e($initialesClient) ?></span>
+                    <?php else: ?>
+                        <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><?= icone_publique('personne') ?></svg>
+                    <?php endif; ?>
                 </a>
 
                 <a href="/produits" class="rounded-full bg-rouge px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-rouge-clair">
@@ -99,8 +106,12 @@ function icone_publique(string $nom): string
                     </div>
                 </a>
 
-                <a href="<?= $client ? '/profil' : '/connexion' ?>" class="flex h-10 w-10 items-center justify-center rounded-full border border-creme bg-white shadow-sm">
-                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><?= icone_publique('personne') ?></svg>
+                <a href="<?= $client ? '/profil' : '/connexion' ?>" class="flex h-10 w-10 items-center justify-center rounded-full <?= $client ? 'bg-rouge text-white' : 'border border-creme bg-white' ?> shadow-sm">
+                    <?php if ($client): ?>
+                        <span class="text-xs font-black"><?= View::e($initialesClient) ?></span>
+                    <?php else: ?>
+                        <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><?= icone_publique('personne') ?></svg>
+                    <?php endif; ?>
                 </a>
             </div>
 
@@ -153,7 +164,11 @@ function icone_publique(string $nom): string
             </a>
 
             <a href="<?= $client ? '/profil' : '/connexion' ?>" class="flex flex-col items-center gap-1 text-gris-chaud">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><?= icone_publique('personne') ?></svg>
+                <?php if ($client): ?>
+                    <span class="flex h-5 w-5 items-center justify-center rounded-full bg-rouge text-[8px] font-black text-white"><?= View::e($initialesClient) ?></span>
+                <?php else: ?>
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><?= icone_publique('personne') ?></svg>
+                <?php endif; ?>
                 <span class="text-[9px] font-medium">Profil</span>
             </a>
 

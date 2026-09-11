@@ -23,46 +23,47 @@ final class PanierController extends ControllerClientBase
     public function afficher(): void
     {
         $this->exigerClientConnecte();
-
-        View::render('panier/index', [
+    
+        View::render('panier/index', $this->avecClient([
+            'titrePage' => 'Mon panier',
             'lignes' => $this->panierService->contenu(),
             'montantTotal' => $this->panierService->montantTotal(),
-        ]);
+        ]));
     }
-
+    
     public function ajouter(): void
     {
         $this->exigerClientConnecte();
-
+    
         try {
             $this->panierService->ajouter(
                 produitId: (int) ($_POST['produit_id'] ?? 0),
                 quantite: (int) ($_POST['quantite'] ?? 1),
             );
-
+    
             Response::redirect('/panier');
         } catch (ProduitInexistantException|StockInsuffisantException $exception) {
-            View::render('produits/catalogue', ['erreur' => $exception->getMessage()]);
+            View::render('produits/catalogue', $this->avecClient(['erreur' => $exception->getMessage()]));
         }
     }
-
+    
     public function modifierQuantite(): void
     {
         $this->exigerClientConnecte();
-
+    
         try {
             $this->panierService->modifierQuantite(
                 produitId: (int) ($_POST['produit_id'] ?? 0),
                 quantite: (int) ($_POST['quantite'] ?? 1),
             );
-
+    
             Response::redirect('/panier');
         } catch (ProduitInexistantException|StockInsuffisantException $exception) {
-            View::render('panier/index', [
+            View::render('panier/index', $this->avecClient([
                 'lignes' => $this->panierService->contenu(),
                 'montantTotal' => $this->panierService->montantTotal(),
                 'erreur' => $exception->getMessage(),
-            ]);
+            ]));
         }
     }
 

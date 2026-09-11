@@ -34,7 +34,7 @@ final class AuthController
      */
     public function afficherInscription(): void
     {
-        View::render('auth/inscription');
+        View::render('auth/inscription', layout: null);
     }
 
     /**
@@ -54,7 +54,7 @@ final class AuthController
 
             Response::redirect('/connexion');
         } catch (EmailDejaUtiliseException|MotDePasseInvalideException $exception) {
-            View::render('auth/inscription', ['erreur' => $exception->getMessage()]);
+            View::render('auth/inscription', ['erreur' => $exception->getMessage()], layout: null);
         }
     }
 
@@ -68,22 +68,38 @@ final class AuthController
     }
 
     /**
-     * Traite la soumission du formulaire de connexion. Redirige vers le
-     * catalogue pour un client, vers le tableau de bord pour un membre du
-     * personnel interne.
+     * Traite la soumission du formulaire de connexion, commun aux clients et
+     * au personnel interne. Tente d'abord l'authentification client ; si
+     * aucun client ne correspond à cet email, tente ensuite l'authentification
+     * du personnel interne. Chaque tentative réussie écrit sa propre clé de
+     * session (client_id ou utilisateur_id) via AuthService, jamais les deux
+     * à la fois.
      */
     public function connecter(): void
     {
+        $email = $_POST['email'] ?? '';
+        $motDePasse = $_POST['mot_de_passe'] ?? '';
+    
         try {
-            $resultat = $this->authService->authentifier(
-                email: $_POST['email'] ?? '',
-                motDePasse: $_POST['mot_de_passe'] ?? '',
-            );
-
-            Response::redirect($resultat['type'] === 'utilisateur' ? '/gerant/dashboard' : '/produits');
-                } catch (UtilisateurInexistantException|MotDePasseIncorrectException|CompteDesactiveException $exception) {
-                    View::render('auth/connexion', ['erreur' => $exception->getMessage()], layout: null);
-                }
+            $this->authService->authentifierClient($email, $motDePasse);
+    
+            Response::redirect('/produits');
+            return;
+        } catch (UtilisateurInexistantException) {
+            // Pas de client avec cet email : on tente le personnel interne
+            // ci-dessous, plutôt que d'échouer immédiatement.
+        } catch (MotDePasseIncorrectException $exception) {
+            View::render('auth/connexion', ['erreur' => $exception->getMessage()], layout: null);
+            return;
+        }
+    
+        try {
+            $this->authService->authentifierUtilisateur($email, $motDePasse);
+    
+            Response::redirect('/gerant/dashboard');
+        } catch (UtilisateurInexistantException|MotDePasseIncorrectException|CompteDesactiveException $exception) {
+            View::render('auth/connexion', ['erreur' => 'Email ou mot de passe incorrect.'], layout: null);
+        }
     }
 
     /**

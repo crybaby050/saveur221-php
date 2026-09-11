@@ -41,4 +41,20 @@ abstract class ControllerClientBase
 
         return $client;
     }
+
+    /**
+     * Fusionne les données communes à toutes les vues client (le client
+     * connecté, ou null pour un visiteur) avec les données propres à la vue
+     * appelante — évite d'oublier de transmettre $client au layout public
+     * dans chaque contrôleur.
+     *
+     * @param array $donnees Données spécifiques à la vue
+     * @return array Données complètes à transmettre à View::render()
+     */
+    protected function avecClient(array $donnees): array
+    {
+        return [...$donnees, 'client' => $this->authService->clientConnecte()];
+    }
+
+    
 }

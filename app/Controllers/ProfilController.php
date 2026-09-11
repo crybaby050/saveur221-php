@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Exceptions\MotDePasseInvalideException;
-use App\Models\Client;
 use App\Services\AuthService;
 use App\Services\ClientService;
 use Core\Response;
@@ -69,22 +68,5 @@ final class ProfilController extends ControllerClientBase
         } catch (MotDePasseInvalideException $exception) {
             View::render('profil/index', ['client' => $client, 'erreur' => $exception->getMessage()]);
         }
-    }
-
-    /**
-     * Interrompt la requête et redirige vers la connexion si aucun client
-     * n'est actuellement authentifié, sinon retourne le client connecté.
-     *
-     * @return Client Le client actuellement connecté
-     */
-    private function exigerClientConnecte(): Client
-    {
-        $client = $this->authService->clientConnecte();
-
-        if ($client === null) {
-            Response::redirect('/connexion');
-        }
-
-        return $client;
     }
 }
