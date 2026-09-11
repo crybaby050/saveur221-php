@@ -130,4 +130,54 @@ final class AuthService
     {
         Session::detruire();
     }
+
+        /**
+     * Authentifie un acteur (client ou utilisateur interne) à partir de
+     * son email et de son mot de passe en clair, en cherchant d'abord
+     * dans la table clients puis dans la table utilisateurs. Permet une
+     * page de connexion unique pour les deux populations, plutôt que
+     * deux formulaires distincts.
+     *
+     * @param string $email      Email saisi
+     * @param string $motDePasse Mot de passe en clair saisi
+     * @return array{type: string, acteur: Client|Utilisateur} Type de compte trouvé et acteur authentifié
+     *
+     * @throws UtilisateurInexistantException si aucun compte ne correspond à cet email
+     * @throws MotDePasseIncorrectException si le mot de passe ne correspond pas
+     * @throws CompteDesactiveException si le compte interne trouvé a été désactivé
+     */
+    public function authentifier(string $email, string $motDePasse): array
+    {
+        $client = $this->clientRepository->trouverParEmail($email);
+
+        if ($client !== null) {
+            if (!password_verify($motDePasse, $client->getMotDePasse())) {
+                throw new MotDePasseIncorrectException('Mot de passe incorrect.');
+            }
+
+            Session::set(self::CLE_SESSION_CLIENT, $client->getId());
+            Session::regenerer();
+
+            return ['type' => 'client', 'acteur' => $client];
+        }
+
+        $utilisateur = $this->utilisateurRepository->trouverParEmail($email);
+
+        if ($utilisateur !== null) {
+            if (!password_verify($motDePasse, $utilisateur->getMotDePasse())) {
+                throw new MotDePasseIncorrectException('Mot de passe incorrect.');
+            }
+
+            if (!$utilisateur->isActif()) {
+                throw new CompteDesactiveException('Ce compte a été désactivé.');
+            }
+
+            Session::set(self::CLE_SESSION_UTILISATEUR, $utilisateur->getId());
+            Session::regenerer();
+
+            return ['type' => 'utilisateur', 'acteur' => $utilisateur];
+        }
+
+        throw new UtilisateurInexistantException('Aucun compte trouvé avec cet email.');
+    }
 }

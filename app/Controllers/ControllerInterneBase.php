@@ -38,7 +38,7 @@ abstract class ControllerInterneBase
         $utilisateur = $this->authService->utilisateurConnecte();
 
         if ($utilisateur === null) {
-            Response::redirect('/interne/connexion');
+            Response::redirect('/connexion');
         }
 
         return $utilisateur;

@@ -4,35 +4,30 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Services\AuthService;
 use App\Services\CategorieService;
+use App\Services\PanierService;
 use App\Services\ProduitService;
-use Core\View;
 use Core\Response;
+use Core\View;
 
-/*
- * Gère la consultation publique du catalogue : liste des produits, avec
- * recherche et filtrage, et détail d'un produit. Aucune authentification
- * requise ici, ces actions sont accessibles à tout visiteur.
- */
 final class ProduitController
 {
     public function __construct(
         private readonly ProduitService $produitService,
         private readonly CategorieService $categorieService,
+        private readonly PanierService $panierService,
+        private readonly AuthService $authService,
     ) {
     }
 
-    /**
-     * Affiche le catalogue, filtré par mot-clé et/ou catégorie si ces
-     * paramètres sont présents dans la requête GET.
-     */
     public function index(): void
     {
         $motCle = $_GET['recherche'] ?? null;
         $categorieId = isset($_GET['categorie']) ? (int) $_GET['categorie'] : null;
 
         $produits = match (true) {
-            $motCle !== null => $this->produitService->rechercherProduit($motCle),
+            $motCle !== null && $motCle !== '' => $this->produitService->rechercherProduit($motCle),
             $categorieId !== null => $this->produitService->filtrerParCategorie($categorieId),
             default => $this->produitService->listerProduits(),
         };
@@ -40,14 +35,12 @@ final class ProduitController
         View::render('produits/catalogue', [
             'produits' => $produits,
             'categories' => $this->categorieService->listerCategories(),
+            'categorieActive' => $categorieId,
+            'client' => $this->authService->clientConnecte(),
+            'titrePage' => 'Menu',
         ]);
     }
 
-    /**
-     * Affiche le détail d'un produit.
-     *
-     * @param string $id Identifiant du produit, extrait de l'URL par le Router
-     */
     public function show(string $id): void
     {
         $produit = $this->produitService->consulterProduit((int) $id);
@@ -58,6 +51,18 @@ final class ProduitController
             return;
         }
 
-        View::render('produits/detail', ['produit' => $produit]);
+        $suggestions = array_values(array_filter(
+            $this->produitService->filtrerParCategorie($produit->getCategorieId()),
+            fn($p) => $p->getId() !== $produit->getId()
+        ));
+
+        View::render('produits/detail', [
+            'produit' => $produit,
+            'suggestions' => array_slice($suggestions, 0, 3),
+            'lignesPanier' => $this->panierService->contenu(),
+            'montantTotalPanier' => $this->panierService->montantTotal(),
+            'client' => $this->authService->clientConnecte(),
+            'titrePage' => $produit->getLibelle(),
+        ]);
     }
 }

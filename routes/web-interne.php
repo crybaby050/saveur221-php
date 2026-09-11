@@ -23,11 +23,8 @@ use App\Controllers\UtilisateurInterneController;
 
 /** @var \Core\Router $router */
 
-/* Authentification interne */
-$router->get('/interne/connexion', [AuthInterneController::class, 'afficherConnexion']);
-$router->post('/interne/connexion', [AuthInterneController::class, 'connecter']);
+/* Déconnexion interne (la connexion est désormais unifiée, voir routes/web.php) */
 $router->post('/interne/deconnexion', [AuthInterneController::class, 'deconnecter']);
-
 /* Tableau de bord */
 $router->get('/gerant/dashboard', [StatistiqueController::class, 'index']);
 
