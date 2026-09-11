@@ -143,35 +143,13 @@ foreach ($commandes as $ligne) {
 
                 <thead>
                     <tr class="border-b border-creme bg-ivoire text-left">
-
-                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">
-                            Commande
-                        </th>
-
-                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">
-                            Date
-                        </th>
-
-                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">
-                            Total
-                        </th>
-
-                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">
-                            Payé
-                        </th>
-
-                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">
-                            Reste
-                        </th>
-
-                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">
-                            Statut
-                        </th>
-
-                        <th class="px-5 py-4 text-right text-xs font-medium uppercase tracking-wide text-gris-chaud">
-                            Action
-                        </th>
-
+                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">Commande</th>
+                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">Date</th>
+                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">Total</th>
+                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">Payé</th>
+                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">Reste</th>
+                        <th class="px-5 py-4 text-xs font-medium uppercase tracking-wide text-gris-chaud">Statut</th>
+                        <th class="px-5 py-4 text-right text-xs font-medium uppercase tracking-wide text-gris-chaud">Action</th>
                     </tr>
                 </thead>
 
@@ -199,102 +177,53 @@ foreach ($commandes as $ligne) {
                         <tr
                             class="ligne-paiement border-b border-creme last:border-b-0"
                             data-statut="<?= View::e($statutPaiement) ?>"
-                            data-recherche="<?= View::e(
-                                strtolower(
-                                    'commande ' .
-                                    $commande->getId() . ' ' .
-                                    $statutPaiement
-                                )
-                            ) ?>"
+                            data-recherche="<?= View::e(strtolower($commande->getNumeroCommande() . ' ' . $statutPaiement)) ?>"
                         >
-
                             <td class="px-5 py-4">
-
-                                <span class="font-medium text-charbon">
-                                    #<?= View::e((string) $commande->getId()) ?>
-                                </span>
-
+                                <span class="font-medium text-charbon"><?= View::e($commande->getNumeroCommande()) ?></span>
                             </td>
 
                             <td class="px-5 py-4 text-sm text-gris-chaud">
-
                                 <?php
                                 $dateCommande = $commande->getDateCommande();
-
-                                if ($dateCommande instanceof DateTimeInterface) {
-                                    echo $dateCommande->format('d/m/Y à H:i');
-                                } else {
-                                    echo View::e((string) $dateCommande);
-                                }
+                                echo $dateCommande instanceof DateTimeInterface
+                                    ? $dateCommande->format('d/m/Y à H:i')
+                                    : View::e((string) $dateCommande);
                                 ?>
-
                             </td>
 
                             <td class="px-5 py-4 text-sm font-medium text-charbon">
-
-                                <?= number_format(
-                                    $ligne['montantTotal'],
-                                    0,
-                                    ',',
-                                    ' '
-                                ) ?> FCFA
-
+                                <?= number_format($ligne['montantTotal'], 0, ',', ' ') ?> FCFA
                             </td>
 
                             <td class="px-5 py-4 text-sm text-charbon">
-
-                                <?= number_format(
-                                    $ligne['montantPaye'],
-                                    0,
-                                    ',',
-                                    ' '
-                                ) ?> FCFA
-
+                                <?= number_format($ligne['montantPaye'], 0, ',', ' ') ?> FCFA
                             </td>
 
                             <td class="px-5 py-4 text-sm font-medium <?= $ligne['montantRestant'] > 0 ? 'text-bordeaux' : 'text-charbon' ?>">
-
-                                <?= number_format(
-                                    $ligne['montantRestant'],
-                                    0,
-                                    ',',
-                                    ' '
-                                ) ?> FCFA
-
+                                <?= number_format($ligne['montantRestant'], 0, ',', ' ') ?> FCFA
                             </td>
 
                             <td class="px-5 py-4">
-
                                 <span class="inline-flex rounded-full px-3 py-1 text-xs font-medium <?= $classeStatut ?>">
                                     <?= $libelleStatut ?>
                                 </span>
-
                             </td>
 
                             <td class="px-5 py-4 text-right">
-
-                                <a
-                                    href="/gerant/paiements/<?= $commande->getId() ?>"
-                                    class="inline-flex items-center rounded-md border border-creme px-3.5 py-2 text-sm font-medium text-charbon transition-colors hover:bg-ivoire"
-                                >
+                                <a href="/gerant/paiements/<?= $commande->getId() ?>"
+                                    class="inline-flex items-center rounded-md border border-creme px-3.5 py-2 text-sm font-medium text-charbon transition-colors hover:bg-ivoire">
                                     Voir
                                 </a>
-
                             </td>
-
                         </tr>
 
                     <?php endforeach; ?>
 
                     <tr id="aucun-resultat" class="<?= $nombreCommandes > 0 ? 'hidden' : '' ?>">
-
-                        <td
-                            colspan="7"
-                            class="px-5 py-12 text-center text-sm text-gris-chaud"
-                        >
+                        <td colspan="7" class="px-5 py-12 text-center text-sm text-gris-chaud">
                             Aucune commande trouvée.
                         </td>
-
                     </tr>
 
                 </tbody>
@@ -324,15 +253,9 @@ foreach ($commandes as $ligne) {
                 const statut = ligne.dataset.statut;
                 const contenuRecherche = ligne.dataset.recherche;
 
-                const correspondRecherche =
-                    terme === '' || contenuRecherche.includes(terme);
-
-                const correspondFiltre =
-                    filtreActuel === 'TOUS' ||
-                    statut === filtreActuel;
-
-                const afficher =
-                    correspondRecherche && correspondFiltre;
+                const correspondRecherche = terme === '' || contenuRecherche.includes(terme);
+                const correspondFiltre = filtreActuel === 'TOUS' || statut === filtreActuel;
+                const afficher = correspondRecherche && correspondFiltre;
 
                 ligne.classList.toggle('hidden', !afficher);
 
@@ -341,10 +264,7 @@ foreach ($commandes as $ligne) {
                 }
             });
 
-            aucunResultat.classList.toggle(
-                'hidden',
-                nombreResultats !== 0
-            );
+            aucunResultat.classList.toggle('hidden', nombreResultats !== 0);
         }
 
         recherche.addEventListener('input', filtrerPaiements);
@@ -354,30 +274,12 @@ foreach ($commandes as $ligne) {
                 filtreActuel = bouton.dataset.filtre;
 
                 boutons.forEach((element) => {
-                    element.classList.remove(
-                        'bg-bordeaux',
-                        'text-ivoire'
-                    );
-
-                    element.classList.add(
-                        'border',
-                        'border-creme',
-                        'bg-white',
-                        'text-charbon'
-                    );
+                    element.classList.remove('bg-bordeaux', 'text-ivoire');
+                    element.classList.add('border', 'border-creme', 'bg-white', 'text-charbon');
                 });
 
-                bouton.classList.remove(
-                    'border',
-                    'border-creme',
-                    'bg-white',
-                    'text-charbon'
-                );
-
-                bouton.classList.add(
-                    'bg-bordeaux',
-                    'text-ivoire'
-                );
+                bouton.classList.remove('border', 'border-creme', 'bg-white', 'text-charbon');
+                bouton.classList.add('bg-bordeaux', 'text-ivoire');
 
                 filtrerPaiements();
             });

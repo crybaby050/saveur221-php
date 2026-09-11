@@ -124,7 +124,7 @@ $estActif = static fn(string $cle): bool => $section === $cle;
             </div>
         </aside>
 
-        <div class="flex flex-1 flex-col md:ml-64">
+        <div class="flex min-w-0 flex-1 flex-col md:ml-64">
 
             <header class="flex h-16 items-center justify-between border-b border-or-clair bg-white px-5 md:px-8">
                 <div class="flex items-center gap-3">
@@ -190,7 +190,7 @@ $estActif = static fn(string $cle): bool => $section === $cle;
 
             <!-- Contenu : léger motif de fond (assiette) très discret, cohérent
                  avec le traitement décoratif déjà utilisé sur la connexion. -->
-            <main class="relative flex-1 overflow-hidden px-5 py-6 md:px-8 md:py-8">
+            <main class="relative min-w-0 flex-1 overflow-hidden px-5 py-6 md:px-8 md:py-8">
                 <svg class="pointer-events-none absolute -bottom-16 -right-16 h-64 w-64 text-bordeaux opacity-[0.03]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.6" aria-hidden="true">
                     <circle cx="12" cy="12" r="9"/>
                     <circle cx="12" cy="12" r="5"/>

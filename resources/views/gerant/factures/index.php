@@ -34,8 +34,8 @@ $facturesAffichees = $factureTrouvee !== null ? [$factureTrouvee] : $factures;
             Aucune facture n'a encore été émise.
         </div>
     <?php elseif (!empty($facturesAffichees)): ?>
-        <div class="overflow-hidden rounded-xl border border-creme bg-white shadow-sm">
-            <table class="w-full text-left text-sm">
+        <div class="overflow-x-auto rounded-xl border border-creme bg-white shadow-sm">
+            <table class="w-full min-w-[650px] text-left text-sm">
                 <thead>
                     <tr class="border-b border-creme text-xs uppercase tracking-wide text-gris-chaud">
                         <th class="px-5 py-3 font-medium">Numéro</th>
