@@ -12,7 +12,6 @@ use App\Services\AuthService;
 use App\Services\CommandeService;
 use App\Services\PaiementService;
 use App\Services\PanierService;
-use Core\Response;
 use Core\View;
 
 /*
@@ -59,7 +58,7 @@ final class CommandeClientController extends ControllerClientBase
 
             $this->panierService->vider();
 
-            Response::redirect("/commandes/{$commande->getId()}/suivi");
+            \Core\Response::redirect("/commandes/{$commande->getId()}/suivi");
         } catch (ProduitInexistantException|StockInsuffisantException|CommandeInvalideException $exception) {
             View::render('panier/index', [
                 'lignes' => $this->panierService->contenu(),
@@ -132,22 +131,5 @@ final class CommandeClientController extends ControllerClientBase
         }
 
         return $commande;
-    }
-
-    /**
-     * Interrompt la requête et redirige vers la connexion si aucun client
-     * n'est actuellement authentifié, sinon retourne le client connecté.
-     *
-     * @return \App\Models\Client Le client actuellement connecté
-     */
-    private function exigerClientConnecte(): \App\Models\Client
-    {
-        $client = $this->authService->clientConnecte();
-
-        if ($client === null) {
-            Response::redirect('/connexion');
-        }
-
-        return $client;
     }
 }

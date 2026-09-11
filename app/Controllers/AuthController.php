@@ -15,11 +15,11 @@ use Core\Response;
 use Core\View;
 
 /*
- * Gère l'inscription et la connexion des clients (espace public du site).
- * La connexion des utilisateurs internes (Gérant, Administrateur) suit un
- * flux séparé, voir AuthInterneController — deux populations d'acteurs
- * distinctes, avec des règles de validation différentes (actif n'existe
- * pas pour un client).
+ * Gère l'inscription des clients et la connexion partagée entre clients et
+ * personnel interne (Gérant, Administrateur) : un seul formulaire, la
+ * redirection après succès dépend simplement du type de compte trouvé.
+ * L'inscription reste réservée aux clients : un compte interne n'est créé
+ * que par un Administrateur déjà connecté, voir UtilisateurController.
  */
 final class AuthController
 {
@@ -30,19 +30,15 @@ final class AuthController
     }
 
     /**
-     * Affiche le formulaire d'inscription.
+     * Affiche le formulaire d'inscription (clients uniquement).
      */
     public function afficherInscription(): void
     {
-        View::render('auth/inscription');
+        View::render('auth/inscription', layout: null);
     }
 
     /**
-     * Traite la soumission du formulaire d'inscription. Redirige vers la
-     * page de connexion en cas de succès, ou réaffiche le formulaire avec
-     * un message d'erreur en cas d'échec — pattern Post/Redirect/Get
-     * appliqué uniquement au cas de succès, puisqu'une erreur doit
-     * permettre au client de corriger sa saisie sans tout retaper.
+     * Traite la soumission du formulaire d'inscription.
      */
     public function inscrire(): void
     {
@@ -58,38 +54,57 @@ final class AuthController
 
             Response::redirect('/connexion');
         } catch (EmailDejaUtiliseException|MotDePasseInvalideException $exception) {
-            View::render('auth/inscription', ['erreur' => $exception->getMessage()]);
+            View::render('auth/inscription', ['erreur' => $exception->getMessage()], layout: null);
         }
     }
 
     /**
-     * Affiche le formulaire de connexion.
+     * Affiche le formulaire de connexion, commun aux clients et au
+     * personnel interne.
      */
     public function afficherConnexion(): void
     {
-        View::render('auth/connexion');
+        View::render('auth/connexion', layout: null);
     }
 
     /**
-     * Traite la soumission du formulaire de connexion. Redirige vers le
-     * catalogue en cas de succès.
+     * Traite la soumission du formulaire de connexion, commun aux clients et
+     * au personnel interne. Tente d'abord l'authentification client ; si
+     * aucun client ne correspond à cet email, tente ensuite l'authentification
+     * du personnel interne. Chaque tentative réussie écrit sa propre clé de
+     * session (client_id ou utilisateur_id) via AuthService, jamais les deux
+     * à la fois.
      */
     public function connecter(): void
     {
+        $email = $_POST['email'] ?? '';
+        $motDePasse = $_POST['mot_de_passe'] ?? '';
+    
         try {
-            $this->authService->authentifierClient(
-                email: $_POST['email'] ?? '',
-                motDePasse: $_POST['mot_de_passe'] ?? '',
-            );
-
+            $this->authService->authentifierClient($email, $motDePasse);
+    
             Response::redirect('/produits');
-        } catch (UtilisateurInexistantException|MotDePasseIncorrectException $exception) {
-            View::render('auth/connexion', ['erreur' => $exception->getMessage()]);
+            return;
+        } catch (UtilisateurInexistantException) {
+            // Pas de client avec cet email : on tente le personnel interne
+            // ci-dessous, plutôt que d'échouer immédiatement.
+        } catch (MotDePasseIncorrectException $exception) {
+            View::render('auth/connexion', ['erreur' => $exception->getMessage()], layout: null);
+            return;
+        }
+    
+        try {
+            $this->authService->authentifierUtilisateur($email, $motDePasse);
+    
+            Response::redirect('/gerant/dashboard');
+        } catch (UtilisateurInexistantException|MotDePasseIncorrectException|CompteDesactiveException $exception) {
+            View::render('auth/connexion', ['erreur' => 'Email ou mot de passe incorrect.'], layout: null);
         }
     }
 
     /**
-     * Déconnecte le client actuellement en session.
+     * Déconnecte l'acteur actuellement en session (client ou utilisateur
+     * interne), quel qu'il soit.
      */
     public function deconnecter(): void
     {
