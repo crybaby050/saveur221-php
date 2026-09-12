@@ -369,7 +369,7 @@ VALUES (
     'Diop',
     'Awa',
     'admin@saveur221.sn',
-    '$2y$10$Ut5iDSErjKJWDptNBq1rsuZFIQmrsh4PNvbCqDVK8TV5wNhjaqyD.', -- SHA-256("admin123")
+    '$2y$10$Ut5iDSErjKJWDptNBq1rsuZFIQmrsh4PNvbCqDVK8TV5wNhjaqyD.', -- bcrypt("password123")
     TRUE,
     (SELECT id FROM roles WHERE nom = 'ADMIN')
 );
