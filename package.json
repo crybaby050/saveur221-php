@@ -1,0 +1,29 @@
+{
+  "name": "saveur221-php",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build:css": "postcss resources/css/app.css -o public/assets/css/app.css --minify",
+    "watch:css": "postcss resources/css/app.css -o public/assets/css/app.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crybaby050/saveur221-php.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/crybaby050/saveur221-php/issues"
+  },
+  "homepage": "https://github.com/crybaby050/saveur221-php#readme",
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "autoprefixer": "^10.5.5",
+    "postcss": "^8.5.28",
+    "postcss-cli": "^12.0.0",
+    "tailwindcss": "^4.3.3"
+  }
+}
