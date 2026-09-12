@@ -64,6 +64,7 @@ function badge_statut(bool $actif): array
         <!-- Vue grille -->
         <div data-vue-contenu="grille" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <?php foreach ($utilisateurs as $utilisateurLigne): ?>
+                <?php $estSoiMeme = ($utilisateurLigne->getId() === $utilisateur->getId()); ?>
                 <?php
                 [$libelleRole, $classeRole] = badge_role($utilisateurLigne->getRole());
                 [$libelleStatut, $classeStatut] = badge_statut($utilisateurLigne->isActif());
@@ -147,6 +148,7 @@ function badge_statut(bool $actif): array
                 </thead>
                 <tbody class="divide-y divide-creme">
                     <?php foreach ($utilisateurs as $utilisateurLigne): ?>
+                        <?php $estSoiMeme = ($utilisateurLigne->getId() === $utilisateur->getId()); ?>
                         <?php
                         [$libelleRole, $classeRole] = badge_role($utilisateurLigne->getRole());
                         [$libelleStatut, $classeStatut] = badge_statut($utilisateurLigne->isActif());
