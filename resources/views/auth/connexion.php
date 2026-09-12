@@ -103,9 +103,9 @@ use Core\View;
                     </p>
                 <?php endif; ?>
 
-                <form method="post" action="/connexion" class="flex flex-col">
+                <form method="post" action="/connexion" id="formulaire-connexion" class="flex flex-col" novalidate>
                     <label for="email" class="mb-1.5 text-sm text-charbon">Email</label>
-                    <div class="mb-4" style="position:relative;">
+                    <div class="mb-1" style="position:relative;">
                         <svg
                             aria-hidden="true"
                             viewBox="0 0 24 24" fill="none" stroke="#8A7F6E" stroke-width="1.7"
@@ -119,14 +119,14 @@ use Core\View;
                             id="email"
                             name="email"
                             placeholder="vous@exemple.com"
-                            required
                             class="h-11 w-full rounded-md border border-or bg-white text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10"
                             style="padding-left:40px; padding-right:14px;"
                         >
                     </div>
+                    <p id="erreur-email" class="mb-3 hidden text-xs text-bordeaux"></p>
 
                     <label for="mot_de_passe" class="mb-1.5 text-sm text-charbon">Mot de passe</label>
-                    <div class="mb-6" style="position:relative;">
+                    <div class="mb-1" style="position:relative;">
                         <svg
                             aria-hidden="true"
                             viewBox="0 0 24 24" fill="none" stroke="#8A7F6E" stroke-width="1.7"
@@ -140,7 +140,6 @@ use Core\View;
                             id="mot_de_passe"
                             name="mot_de_passe"
                             placeholder="********"
-                            required
                             class="h-11 w-full rounded-md border border-or bg-white text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10"
                             style="padding-left:40px; padding-right:42px;"
                         >
@@ -159,6 +158,7 @@ use Core\View;
                             </svg>
                         </button>
                     </div>
+                    <p id="erreur-mot-de-passe" class="mb-4 hidden text-xs text-bordeaux"></p>
 
                     <button
                         type="submit"
@@ -179,6 +179,47 @@ use Core\View;
         </div>
 
     </div>
+    <script>
+    const formulaireConnexion = document.getElementById('formulaire-connexion');
+    const champEmail = document.getElementById('email');
+    const champMdpConnexion = document.getElementById('mot_de_passe');
+
+    function afficherErreurConnexion(champId, message) {
+        const erreur = document.getElementById(`erreur-${champId}`);
+        erreur.textContent = message;
+        erreur.classList.remove('hidden');
+    }
+
+    function viderErreursConnexion() {
+        ['email', 'mot-de-passe'].forEach((champ) => {
+            const erreur = document.getElementById(`erreur-${champ}`);
+            erreur.textContent = '';
+            erreur.classList.add('hidden');
+        });
+    }
+
+    formulaireConnexion.addEventListener('submit', (evenement) => {
+        viderErreursConnexion();
+        let valide = true;
+
+        if (champEmail.value.trim() === '') {
+            afficherErreurConnexion('email', "L'email est requis.");
+            valide = false;
+        } else if (!champEmail.value.includes('@')) {
+            afficherErreurConnexion('email', 'Adresse email invalide.');
+            valide = false;
+        }
+
+        if (champMdpConnexion.value === '') {
+            afficherErreurConnexion('mot-de-passe', 'Le mot de passe est requis.');
+            valide = false;
+        }
+
+        if (!valide) {
+            evenement.preventDefault();
+        }
+    });
+</script>
 
     <script>
         const boutonBascule = document.getElementById('toggle-mot-de-passe');

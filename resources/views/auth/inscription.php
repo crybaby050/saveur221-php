@@ -83,7 +83,7 @@ use Core\View;
                     </p>
                 <?php endif; ?>
 
-                <form method="post" action="/inscription" class="flex flex-col gap-4">
+                <form method="post" action="/inscription" id="formulaire-inscription" class="flex flex-col gap-1" novalidate>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -92,9 +92,9 @@ use Core\View;
                                 type="text"
                                 id="prenom"
                                 name="prenom"
-                                required
                                 class="h-11 w-full rounded-md border border-or bg-white px-3.5 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10"
                             >
+                            <p id="erreur-prenom" class="mt-1 hidden text-xs text-bordeaux"></p>
                         </div>
                         <div>
                             <label for="nom" class="mb-1.5 block text-sm text-charbon">Nom</label>
@@ -102,25 +102,25 @@ use Core\View;
                                 type="text"
                                 id="nom"
                                 name="nom"
-                                required
                                 class="h-11 w-full rounded-md border border-or bg-white px-3.5 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10"
                             >
+                            <p id="erreur-nom" class="mt-1 hidden text-xs text-bordeaux"></p>
                         </div>
                     </div>
 
-                    <div>
+                    <div class="mt-3">
                         <label for="email" class="mb-1.5 block text-sm text-charbon">Email</label>
                         <input
                             type="email"
                             id="email"
                             name="email"
                             placeholder="vous@exemple.com"
-                            required
                             class="h-11 w-full rounded-md border border-or bg-white px-3.5 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10"
                         >
+                        <p id="erreur-email" class="mt-1 hidden text-xs text-bordeaux"></p>
                     </div>
 
-                    <div>
+                    <div class="mt-3">
                         <label for="telephone" class="mb-1.5 block text-sm text-charbon">Téléphone <span class="text-gris-chaud">(facultatif)</span></label>
                         <input
                             type="tel"
@@ -131,7 +131,7 @@ use Core\View;
                         >
                     </div>
 
-                    <div>
+                    <div class="mt-3">
                         <label for="adresse" class="mb-1.5 block text-sm text-charbon">Adresse <span class="text-gris-chaud">(facultatif)</span></label>
                         <input
                             type="text"
@@ -141,7 +141,7 @@ use Core\View;
                         >
                     </div>
 
-                    <div>
+                    <div class="mt-3">
                         <label for="mot_de_passe" class="mb-1.5 block text-sm text-charbon">Mot de passe</label>
                         <div style="position:relative;">
                             <input
@@ -149,8 +149,6 @@ use Core\View;
                                 id="mot_de_passe"
                                 name="mot_de_passe"
                                 placeholder="6 caractères minimum"
-                                required
-                                minlength="6"
                                 class="h-11 w-full rounded-md border border-or bg-white px-3.5 text-sm text-charbon focus:border-bordeaux focus:outline-none focus:ring-3 focus:ring-bordeaux/10"
                                 style="padding-right:42px;"
                             >
@@ -169,11 +167,12 @@ use Core\View;
                                 </svg>
                             </button>
                         </div>
+                        <p id="erreur-mot-de-passe" class="mt-1 hidden text-xs text-bordeaux"></p>
                     </div>
 
                     <button
                         type="submit"
-                        class="mt-2 h-[46px] rounded-md bg-bordeaux text-sm font-medium tracking-wide text-ivoire transition-colors hover:bg-bordeaux-sombre"
+                        class="mt-4 h-[46px] rounded-md bg-bordeaux text-sm font-medium tracking-wide text-ivoire transition-colors hover:bg-bordeaux-sombre"
                     >
                         Créer mon compte
                     </button>
@@ -187,6 +186,60 @@ use Core\View;
         </div>
 
     </div>
+
+<script>
+    const formulaireInscription = document.getElementById('formulaire-inscription');
+    const champPrenom = document.getElementById('prenom');
+    const champNom = document.getElementById('nom');
+    const champEmailInscription = document.getElementById('email');
+    const champMdpInscription = document.getElementById('mot_de_passe');
+
+    function afficherErreurInscription(champId, message) {
+        const erreur = document.getElementById(`erreur-${champId}`);
+        erreur.textContent = message;
+        erreur.classList.remove('hidden');
+    }
+
+    function viderErreursInscription() {
+        ['prenom', 'nom', 'email', 'mot-de-passe'].forEach((champ) => {
+            const erreur = document.getElementById(`erreur-${champ}`);
+            erreur.textContent = '';
+            erreur.classList.add('hidden');
+        });
+    }
+
+    formulaireInscription.addEventListener('submit', (evenement) => {
+        viderErreursInscription();
+        let valide = true;
+
+        if (champPrenom.value.trim() === '') {
+            afficherErreurInscription('prenom', 'Le prénom est requis.');
+            valide = false;
+        }
+
+        if (champNom.value.trim() === '') {
+            afficherErreurInscription('nom', 'Le nom est requis.');
+            valide = false;
+        }
+
+        if (champEmailInscription.value.trim() === '') {
+            afficherErreurInscription('email', "L'email est requis.");
+            valide = false;
+        } else if (!champEmailInscription.value.includes('@')) {
+            afficherErreurInscription('email', 'Adresse email invalide.');
+            valide = false;
+        }
+
+        if (champMdpInscription.value.length < 6) {
+            afficherErreurInscription('mot-de-passe', 'Le mot de passe doit contenir au moins 6 caractères.');
+            valide = false;
+        }
+
+        if (!valide) {
+            evenement.preventDefault();
+        }
+    });
+</script>
 
     <script>
         const boutonBascule = document.getElementById('toggle-mot-de-passe');
