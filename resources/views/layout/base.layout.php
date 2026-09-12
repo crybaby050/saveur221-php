@@ -132,6 +132,79 @@ function icone_publique(string $nom): string
 
     </main>
 
+    <!-- Footer -->
+<footer class="hidden border-t border-rouge/10 bg-white py-16 lg:block">
+    <div class="mx-auto max-w-7xl px-8">
+
+        <div class="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+
+            <div>
+                <a href="/" class="flex items-center gap-2.5">
+                    <img src="/assets/images/logo/saveur221-logo.png" alt="Saveur221" class="h-9 w-auto">
+                    <div>
+                        <p class="font-voice text-lg font-black text-rouge">Saveur 221</p>
+                        <p class="text-[11px] text-gris-chaud">Le goût du Sénégal</p>
+                    </div>
+                </a>
+                <p class="mt-4 text-sm leading-relaxed text-gris-chaud">
+                    Des saveurs authentiques préparées avec passion, pour une expérience culinaire unique.
+                </p>
+            </div>
+
+            <div>
+                <p class="text-xs font-black uppercase tracking-wide text-charbon">Navigation</p>
+                <ul class="mt-4 space-y-3 text-sm text-gris-chaud">
+                    <li><a href="/" class="transition hover:text-rouge">Accueil</a></li>
+                    <li><a href="/produits" class="transition hover:text-rouge">Menu</a></li>
+                    <li><a href="/panier" class="transition hover:text-rouge">Panier</a></li>
+                    <li><a href="/commandes/historique" class="transition hover:text-rouge">Mes commandes</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="text-xs font-black uppercase tracking-wide text-charbon">Compte</p>
+                <ul class="mt-4 space-y-3 text-sm text-gris-chaud">
+                    <li><a href="/profil" class="transition hover:text-rouge">Mon profil</a></li>
+                    <li><a href="/connexion" class="transition hover:text-rouge">Connexion</a></li>
+                    <li><a href="/inscription" class="transition hover:text-rouge">Inscription</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="text-xs font-black uppercase tracking-wide text-charbon">Contact</p>
+                <ul class="mt-4 space-y-3 text-sm text-gris-chaud">
+                    <li class="flex items-start gap-2">
+                        <svg class="mt-0.5 h-4 w-4 shrink-0 text-rouge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                            <?= icone_publique('localisation') ?>
+                        </svg>
+                        <span>Dakar, Sénégal</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <svg class="h-4 w-4 shrink-0 text-rouge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                            <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L8 9.9a16 16 0 0 0 6 6l1.4-1.4a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.8 2Z" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>+221 77 000 00 00</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <svg class="h-4 w-4 shrink-0 text-rouge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                            <rect x="3" y="5" width="18" height="14" rx="2"/>
+                            <path d="M3 7l9 6 9-6" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>contact@saveur221.sn</span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="mt-10 flex flex-col items-center justify-between gap-3 border-t border-creme pt-8 sm:flex-row">
+            <p class="text-xs text-gris-chaud">&copy; <?= date('Y') ?> Saveur221. Tous droits réservés.</p>
+            <p class="text-xs text-gris-chaud">Fait avec passion à Dakar</p>
+        </div>
+
+    </div>
+</footer>
+
     <!-- Navigation mobile -->
     <nav class="fixed bottom-0 left-0 right-0 z-50 border-t border-rouge/10 bg-white/95 px-4 pb-3 pt-2 backdrop-blur lg:hidden">
         <div class="mx-auto flex max-w-md items-center justify-between">

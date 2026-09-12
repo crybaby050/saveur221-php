@@ -65,6 +65,12 @@ use Core\View;
             </svg>
 
             <div class="relative w-full max-w-[400px]" style="z-index:1;">
+                <a href="/" class="mb-4 inline-flex items-center gap-1.5 text-sm text-gris-chaud transition-colors hover:text-bordeaux">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                        <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Retour à l'accueil
+                </a>
 
                 <div class="mb-6 flex justify-center">
                     <img
